@@ -7,7 +7,7 @@ Created on Tue Oct 25 15:35:09 2022
 import numpy as np
 from astropy.modeling.models import Sersic2D
 from profiles import Exponential2D,Ferrers2D
-
+import matplotlib.pyplot as plt
 class profiles:
     def __init__(self,x_size=100,y_size=100,amp_sersic=1, r_eff_sersic=25, n_sersic=4, x0_sersic=50,y0_sersic=50, ellip_sersic=.5, theta_sersic=-1, \
                 amp_exp=1,h_exp=20,x0_exp=50,y0_exp=50,ellip_exp=.5,theta_exp=-1,\
@@ -55,3 +55,16 @@ class profiles:
                ellip=self.ellip_ferrers, theta=self.theta_ferrers)
         image = model(x,y)
         return(image)
+
+clas = profiles()
+
+ser = clas.Sersic()
+exp = clas.Exponential()
+fer = clas.Ferrers()
+
+plt.figure()
+plt.imshow(np.log10(ser))
+plt.figure()
+plt.imshow((exp))
+plt.figure()
+plt.imshow((fer))
