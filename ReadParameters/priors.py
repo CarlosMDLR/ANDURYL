@@ -9,10 +9,13 @@ import numpy as np
 from astropy.modeling.models import Sersic2D
 from profiles import Exponential2D,Ferrers2D
 
-class priors(self,):
-    
+class priors:
+    def __init__(self,A,B,N):
+        self.A =A
+        self.B=B
+        self.N =N
     def Uprior(self):
-        return(np.random.uniform(A,B,(N,N)))
-    def Gprior(self):
-        return(np.random.normal(loc=means,scale =sigmas))
+        return(np.random.uniform(self.A,self.B,(self.N,self.N)))
+    # def Gprior(self):
+    #     return(np.random.normal(loc=means,scale =sigmas))
             

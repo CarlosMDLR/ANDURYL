@@ -5,13 +5,12 @@ Created on Tue Oct 25 15:35:09 2022
 @author: Usuario
 """
 import numpy as np
-from astropy.modeling.models import Sersic2D
-from profiles import Exponential2D,Ferrers2D
+from profiles import Sersic2D,Exponential2D,Ferrers2D
 import matplotlib.pyplot as plt
 class profiles:
-    def __init__(self,x_size=100,y_size=100,amp_sersic=1, r_eff_sersic=25, n_sersic=4, x0_sersic=50,y0_sersic=50, ellip_sersic=.5, theta_sersic=-1, \
-                amp_exp=1,h_exp=20,x0_exp=50,y0_exp=50,ellip_exp=.5,theta_exp=-1,\
-                    amp_ferrers=1, a_bar_ferrers=5, n_bar_ferrers=3, x0_ferrers=50,y0_ferrers=50, ellip_ferrers=.5, theta_ferrers=-1):
+    def __init__(self,x_size=100,y_size=100,amp_sersic=1, r_eff_sersic=25, n_sersic=1, x0_sersic=50,y0_sersic=50, ellip_sersic=.5, theta_sersic=20, \
+                amp_exp=1,h_exp=20,x0_exp=50,y0_exp=50,ellip_exp=.5,theta_exp=20,\
+                    amp_ferrers=1, a_bar_ferrers=5, n_bar_ferrers=3, x0_ferrers=50,y0_ferrers=50, ellip_ferrers=.5, theta_ferrers=20):
         self.x_size = x_size
         self.y_size = y_size
         #Sersic params
@@ -56,6 +55,7 @@ class profiles:
         image = model(x,y)
         return(image)
 
+"""
 clas = profiles()
 
 ser = clas.Sersic()
@@ -63,8 +63,9 @@ exp = clas.Exponential()
 fer = clas.Ferrers()
 
 plt.figure()
-plt.imshow(np.log10(ser))
+plt.imshow((ser))
 plt.figure()
 plt.imshow((exp))
 plt.figure()
 plt.imshow((fer))
+"""
