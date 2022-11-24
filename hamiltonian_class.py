@@ -9,7 +9,7 @@ import torch
 import numpy as np
 import matplotlib.pyplot as pl
 import hamiltorch
-
+from profile_select import *
 
 
 class hamiltonian_model:
@@ -18,19 +18,27 @@ class hamiltonian_model:
     def hamiltonian_sersic(self):
         sigman = 1
         y = self.image
-        x = np.linspace(0,376,376)
-        xt = torch.tensor(x)
         yt = torch.tensor(y)
         def logPosteriorSersic(pars):
             #pars[0]=amplitude
-            #pars[1]= bn
-            #pars[2]= Re
-            #pars[3]=n
-            model = pars[0] * torch.exp(-pars[1] * ((xt/pars[2]) ** (1 / pars[3]) - 1))
+            #pars[1]= Re
+            #pars[2]= n
+            #pars[3]=x0
+            #pars[4]=y0
+            #pars[5]=ellip
+            #pars[6]=theta
+            model_class = profiles(x_size=np.shape(y)[0],y_size=np.shape(y)[0],\
+                                   amp_sersic=pars[0],r_eff_sersic=pars[1],\
+                                       n_sersic=pars[2],x0_sersic=pars[3],\
+                                           y0_sersic=pars[4],\
+                                               ellip_sersic=pars[5],\
+                                                   theta_sersic=pars[6])
+            model_method = getattr(model_class, 'Sersic')
+            model = model_method
             logL = -0.5 * torch.sum((model - yt)**2 / sigman**2)
             return logL
         hamiltorch.set_random_seed(123)
-        paramis = np.array([24.51,0.765,5.,5.103])
+        paramis = np.array([24.51,5,5.10,182.67604,154.94841,0.765,0.4])
         params_init = torch.tensor(paramis)
         burn = 500
         step_size = 0.1
