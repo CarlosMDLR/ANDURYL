@@ -5,7 +5,6 @@ Created on Tue Oct 25 15:57:59 2022
 @author: Usuario
 """
 import numpy as np
-import torch
 from astropy import units as u
 from astropy.units import Quantity, UnitsError
 
@@ -68,12 +67,12 @@ class Sersic2D(Fittable2DModel):
         from astropy.modeling.models import Sersic2D
         import matplotlib.pyplot as plt
 
-        x,y = torch.meshgrid(torch.arange(100), torch.arange(100))
+        x,y = np.meshgrid(np.arange(100), np.arange(100))
 
         mod = Sersic2D(amplitude = 1, r_eff = 25, n=4, x_0=50, y_0=50,
                        ellip=.5, theta=-1)
         img = mod(x, y)
-        log_img = torch.log10(img)
+        log_img = np.log10(img)
 
 
         plt.figure()
@@ -92,15 +91,15 @@ class Sersic2D(Fittable2DModel):
     .. [2] https://docs.astropy.org/en/stable/_modules/astropy/modeling/functional_models.html#Sersic2D
     """
     
-    amplitude = torch.Tensor(Parameter(default=1, description="Surface brightness at r_eff"))
-    r_eff = torch.Tensor(Parameter(default=1, description="Effective (half-light) radius"))
-    n = torch.Tensor(Parameter(default=4, description="Sersic Index"))
-    x_0 = torch.Tensor(Parameter(default=0, description="X position of the center"))
-    y_0 = torch.Tensor(Parameter(default=0, description="Y position of the center"))
-    ellip = torch.Tensor(Parameter(default=0, description="Ellipticity"))
-    theta = torch.Tensor(Parameter(default=0.0, description=("Rotation angle either as a "
+    amplitude = Parameter(default=1, description="Surface brightness at r_eff")
+    r_eff = Parameter(default=1, description="Effective (half-light) radius")
+    n = Parameter(default=4, description="Sersic Index")
+    x_0 = Parameter(default=0, description="X position of the center")
+    y_0 = Parameter(default=0, description="Y position of the center")
+    ellip = Parameter(default=0, description="Ellipticity")
+    theta = Parameter(default=0.0, description=("Rotation angle either as a "
                                                 "float (in radians) or a "
-                                                "|Quantity| angle")))
+                                                "|Quantity| angle"))
     _gammaincinv = None
 
     @classmethod
@@ -112,14 +111,14 @@ class Sersic2D(Fittable2DModel):
             cls._gammaincinv = gammaincinv
 
         bn = cls._gammaincinv(2. * n, 0.5)
-        theta = -theta*torch.pi/180
+        theta = -theta*np.pi/180
         a, b = r_eff, (1 - ellip) * r_eff
-        cos_theta, sin_theta = torch.cos(theta), torch.sin(theta)
+        cos_theta, sin_theta = np.cos(theta), np.sin(theta)
         x_maj = -(x - x_0) * sin_theta + (y - y_0) * cos_theta
         x_min = -(x - x_0) * cos_theta - (y - y_0) * sin_theta
-        z = torch.sqrt((x_maj / a) ** 2 + (x_min / b) ** 2)
+        z = np.sqrt((x_maj / a) ** 2 + (x_min / b) ** 2)
 
-        return amplitude * torch.exp(-bn * (z ** (1 / n) - 1))
+        return amplitude * np.exp(-bn * (z ** (1 / n) - 1))
 # =============================================================================
 class Exponential2D(Fittable2DModel):
     r"""
@@ -173,14 +172,14 @@ class Exponential2D(Fittable2DModel):
         if cls._gammaincinv is None:
             from scipy.special import gammaincinv
             cls._gammaincinv = gammaincinv
-        theta = -theta*torch.pi/180
+        theta = -theta*np.pi/180
         a, b = h, (1 - ellip) * h
-        cos_theta, sin_theta = torch.cos(theta), torch.sin(theta)
+        cos_theta, sin_theta = np.cos(theta), np.sin(theta)
         x_maj = -(x - x_0) * sin_theta + (y - y_0) * cos_theta
         x_min = -(x - x_0) * cos_theta - (y - y_0) * sin_theta
-        z = torch.sqrt((x_maj / a) ** 2 + (x_min / b) ** 2)
+        z = np.sqrt((x_maj / a) ** 2 + (x_min / b) ** 2)
 
-        return amplitude * torch.exp(-(z)) 
+        return amplitude * np.exp(-(z)) 
 # =============================================================================
 
 class Ferrers2D(Fittable2DModel):
@@ -238,12 +237,12 @@ class Ferrers2D(Fittable2DModel):
         if cls._gammaincinv is None:
             from scipy.special import gammaincinv
             cls._gammaincinv = gammaincinv
-        theta = -theta*torch.pi/180
+        theta = -theta*np.pi/180
         a, b = a_bar, (1 - ellip) * a_bar
-        cos_theta, sin_theta = torch.cos(theta), torch.sin(theta)
+        cos_theta, sin_theta = np.cos(theta), np.sin(theta)
         x_maj = -(x - x_0) * sin_theta + (y - y_0) * cos_theta
         x_min = -(x - x_0) * cos_theta - (y - y_0) * sin_theta
-        z = torch.sqrt((x_maj / a) ** 2 + (x_min / b) ** 2)
+        z = np.sqrt((x_maj / a) ** 2 + (x_min / b) ** 2)
 
-        return amplitude * torch.exp(1-(z)**2)**(n_bar+0.5)
+        return amplitude * np.exp(1-(z)**2)**(n_bar+0.5)
 

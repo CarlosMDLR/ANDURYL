@@ -15,6 +15,7 @@ from psf_generation import *
 from hamiltonian_class import *
 import cmasher as cmr
 from astropy.convolution import convolve
+
 # =============================================================================
 # Eleccion de mapa de colores y lectura de datos
 # =============================================================================

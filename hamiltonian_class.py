@@ -11,14 +11,13 @@ import matplotlib.pyplot as pl
 import hamiltorch
 from profile_select import *
 
-
 class hamiltonian_model:
     def __init__(self,image):
         self.image = image
     def hamiltonian_sersic(self):
-        sigman = 1
+        sigman = 1e-3
         y = self.image
-        yt = torch.tensor(y)
+        yt = torch.tensor(y,requires_grad=True)
         def logPosteriorSersic(pars):
             #pars[0]=amplitude
             #pars[1]= Re
@@ -27,19 +26,23 @@ class hamiltonian_model:
             #pars[4]=y0
             #pars[5]=ellip
             #pars[6]=theta
-            model_class = profiles(x_size=np.shape(y)[0],y_size=np.shape(y)[0],\
-                                   amp_sersic=pars[0],r_eff_sersic=pars[1],\
-                                       n_sersic=pars[2],x0_sersic=pars[3],\
-                                           y0_sersic=pars[4],\
-                                               ellip_sersic=pars[5],\
-                                                   theta_sersic=pars[6])
+            model_class = profiles(x_size=np.shape(y)[0],y_size=np.shape(y)[1],\
+                                   amp_sersic=pars[0].numpy(),r_eff_sersic=pars[1].numpy(),\
+                                       n_sersic=pars[2].numpy(),x0_sersic=pars[3].numpy(),\
+                                           y0_sersic=pars[4].numpy(),\
+                                               ellip_sersic=pars[5].numpy(),\
+                                                   theta_sersic=pars[6].numpy())
             model_method = getattr(model_class, 'Sersic')
-            model = model_method
+            m= model_method()
+            plt.figure()
+            plt.imshow((m))
+            model = torch.tensor(m,requires_grad=True)
             logL = -0.5 * torch.sum((model - yt)**2 / sigman**2)
+        
             return logL
-        hamiltorch.set_random_seed(123)
-        paramis = np.array([24.51,5,5.10,182.67604,154.94841,0.765,0.4])
-        params_init = torch.tensor(paramis)
+        #hamiltorch.set_random_seed(123)
+        paramis = np.array([24.51,80,5.10,154.94841,182.67604,0.765,5])
+        params_init = torch.tensor(paramis,requires_grad=True)
         burn = 500
         step_size = 0.1
         L = 5
