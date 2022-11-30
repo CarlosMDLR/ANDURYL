@@ -33,6 +33,7 @@ yt = torch.tensor(ynoise)
 def logPosterior(pars):
     model = pars[0] * xt**2 + pars[1] * xt + pars[2]
     logL = -0.5 * torch.sum((model - yt)**2 / sigman**2)
+
     return logL
 
 # Sampler

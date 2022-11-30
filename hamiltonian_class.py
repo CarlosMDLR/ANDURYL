@@ -17,7 +17,7 @@ class hamiltonian_model:
     def hamiltonian_sersic(self):
         sigman = 1e-3
         y = self.image
-        yt = torch.tensor(y,requires_grad=True)
+        yt = torch.tensor(y)
         def logPosteriorSersic(pars):
             #pars[0]=amplitude
             #pars[1]= Re
