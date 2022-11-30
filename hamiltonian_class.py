@@ -26,23 +26,21 @@ class hamiltonian_model:
             #pars[4]=y0
             #pars[5]=ellip
             #pars[6]=theta
-            model_class = profiles(x_size=np.shape(y)[0],y_size=np.shape(y)[1],\
-                                   amp_sersic=pars[0].numpy(),r_eff_sersic=pars[1].numpy(),\
-                                       n_sersic=pars[2].numpy(),x0_sersic=pars[3].numpy(),\
-                                           y0_sersic=pars[4].numpy(),\
-                                               ellip_sersic=pars[5].numpy(),\
-                                                   theta_sersic=pars[6].numpy())
+            model_class = profiles(x_size=y.shape[0],y_size=y.shape[1],\
+                                   amp_sersic=pars[0].detach().numpy(),r_eff_sersic=pars[1].detach().numpy(),\
+                                       n_sersic=pars[2].detach().numpy(),x0_sersic=pars[3].detach().numpy(),\
+                                           y0_sersic=pars[4].detach().numpy(),\
+                                               ellip_sersic=pars[5].detach().numpy(),\
+                                                   theta_sersic=pars[6].detach().numpy())
             model_method = getattr(model_class, 'Sersic')
             m= model_method()
-            plt.figure()
-            plt.imshow((m))
-            model = torch.tensor(m,requires_grad=True)
+            model = torch.tensor(m)
             logL = -0.5 * torch.sum((model - yt)**2 / sigman**2)
-        
+            print(logL)
             return logL
         #hamiltorch.set_random_seed(123)
         paramis = np.array([24.51,80,5.10,154.94841,182.67604,0.765,5])
-        params_init = torch.tensor(paramis,requires_grad=True)
+        params_init = torch.tensor(paramis)
         burn = 500
         step_size = 0.1
         L = 5
