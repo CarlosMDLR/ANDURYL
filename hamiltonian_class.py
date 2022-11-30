@@ -17,7 +17,7 @@ class hamiltonian_model:
     def hamiltonian_sersic(self):
         sigman = 1e-3
         y = self.image
-        yt = torch.tensor(y)
+        yt = torch.tensor(y,requires_grad=True)
         def logPosteriorSersic(pars):
             #pars[0]=amplitude
             #pars[1]= Re
@@ -34,13 +34,13 @@ class hamiltonian_model:
                                                    theta_sersic=pars[6].detach().numpy())
             model_method = getattr(model_class, 'Sersic')
             m= model_method()
-            model = torch.tensor(m)
+            model = torch.tensor(m,requires_grad=True)
             logL = -0.5 * torch.sum((model - yt)**2 / sigman**2)
             print(logL)
             return logL
         #hamiltorch.set_random_seed(123)
         paramis = np.array([24.51,80,5.10,154.94841,182.67604,0.765,5])
-        params_init = torch.tensor(paramis)
+        params_init = torch.tensor(paramis,requires_grad=True)
         burn = 500
         step_size = 0.1
         L = 5
