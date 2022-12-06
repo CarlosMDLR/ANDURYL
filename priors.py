@@ -6,8 +6,6 @@ Created on Thu Nov  3 16:08:50 2022
 """
 
 import numpy as np
-from astropy.modeling.models import Sersic2D
-from profiles import Exponential2D,Ferrers2D
 
 class priors:
     def __init__(self,A,B,N):

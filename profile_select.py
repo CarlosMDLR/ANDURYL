@@ -6,7 +6,7 @@ Created on Tue Oct 25 15:35:09 2022
 """
 import torch
 import numpy as np
-from profiles import Sersic2D,Exponential2D,Ferrers2D
+from profiles_torch import Sersic2D,Exponential2D,Ferrers2D
 import matplotlib.pyplot as plt
 class profiles:
     def __init__(self,x_size=100,y_size=100,amp_sersic=1, r_eff_sersic=25, n_sersic=1, x0_sersic=50,y0_sersic=50, ellip_sersic=.5, theta_sersic=20, \
@@ -39,22 +39,19 @@ class profiles:
         self.theta_ferrers=theta_ferrers
     def Sersic(self):
         x,y = torch.meshgrid(torch.arange(int(self.x_size)), torch.arange(int(self.y_size)))
-        model = Sersic2D(amplitude = self.amp_sersic, r_eff =self.r_eff_sersic, n= self.n_sersic, x_0= self.x0_sersic, y_0= self.y0_sersic,
+        model = Sersic2D(x=x,y=y,amplitude = self.amp_sersic, r_eff =self.r_eff_sersic, n= self.n_sersic, x_0= self.x0_sersic, y_0= self.y0_sersic,
                ellip=self.ellip_sersic, theta=self.theta_sersic)
-        image = model(x,y)
-        return(image)
+        return(model())
     def Exponential(self):
         x,y = torch.meshgrid(torch.arange(int(self.x_size)), torch.arange(int(self.y_size)))
-        model = Exponential2D(amplitude = self.amp_exp, h =self.h_exp, x_0= self.x0_exp, y_0= self.y0_exp,
+        model = Exponential2D(x=x,y=y,amplitude = self.amp_exp, h =self.h_exp, x_0= self.x0_exp, y_0= self.y0_exp,
                ellip=self.ellip_exp, theta=self.theta_exp)
-        image = model(x,y)
-        return(image)
+        return(model())
     def Ferrers(self):
         x,y = torch.meshgrid(torch.arange(int(self.x_size)), torch.arange(int(self.y_size)))
-        model = Ferrers2D(amplitude = self.amp_ferrers,a_bar =self.a_bar_ferrers,n_bar=self.n_bar_ferrers , x_0= self.x0_ferrers, y_0= self.y0_ferrers,
+        model = Ferrers2D(x=x,y=y,amplitude = self.amp_ferrers,a_bar =self.a_bar_ferrers,n_bar=self.n_bar_ferrers , x_0= self.x0_ferrers, y_0= self.y0_ferrers,
                ellip=self.ellip_ferrers, theta=self.theta_ferrers)
-        image = model(x,y)
-        return(image)
+        return(model())
 
 """
 clas = profiles()

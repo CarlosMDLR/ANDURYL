@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from read_params import *
 from priors import *
 from profile_select import *
-from profiles import *
+from profiles_torch import *
 from psf_generation import *
 from hamiltonian_class import *
 import cmasher as cmr
@@ -44,5 +44,5 @@ plt.imshow((data_conv),cmap = cmap)
 # =============================================================================
 data_conv = data_conv.astype(np.float64)
 hamiltonian_class = hamiltonian_model(data_conv)
-class_method = getattr(hamiltonian_class, 'hamiltonian_sersic')
+class_method = getattr(hamiltonian_class, 'hamiltonian_ferrers')
 params = class_method() 
