@@ -36,7 +36,7 @@ class hamiltonian_model:
             logL = -0.5 * torch.sum((model_method() - yt)**2 / sigman**2)
             return logL
         #hamiltorch.set_random_seed(123)
-        paramis = np.array([24.51,80,5.10,154.94841,182.67604,0.765,5])
+        paramis = np.array([24.51,80*0.396,5.10,154.94841,182.67604,0.765,5])
         params_init = torch.tensor(paramis,requires_grad=True)
         burn = 500
         step_size = 0.1
@@ -51,7 +51,8 @@ class hamiltonian_model:
                                         sampler=hamiltorch.Sampler.HMC_NUTS,
                                         burn=burn,
                                         desired_accept_rate=0.8)
-        params_nuts = torch.cat(params_nuts[1:]).reshape(len(params_nuts[1:]),-1).numpy()
+        params_nuts = torch.cat(params_nuts[1:]).reshape(len(params_nuts[1:]),-1)
+        #params_nuts = torch.cat(params_nuts[1:]).reshape(len(params_nuts[1:]),-1).numpy()
         return(params_nuts)
     
     def hamiltonian_exponential(self):
@@ -90,7 +91,7 @@ class hamiltonian_model:
                                         sampler=hamiltorch.Sampler.HMC_NUTS,
                                         burn=burn,
                                         desired_accept_rate=0.8)
-        params_nuts = torch.cat(params_nuts[1:]).reshape(len(params_nuts[1:]),-1).numpy()
+        params_nuts = torch.cat(params_nuts[1:]).reshape(len(params_nuts[1:]),-1)
         return(params_nuts)
     
     def hamiltonian_ferrers(self):
@@ -130,5 +131,5 @@ class hamiltonian_model:
                                         sampler=hamiltorch.Sampler.HMC_NUTS,
                                         burn=burn,
                                         desired_accept_rate=0.8)
-        params_nuts = torch.cat(params_nuts[1:]).reshape(len(params_nuts[1:]),-1).numpy()
+        params_nuts = torch.cat(params_nuts[1:]).reshape(len(params_nuts[1:]),-1)
         return(params_nuts)

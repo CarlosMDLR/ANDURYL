@@ -52,18 +52,3 @@ class profiles:
         model = Ferrers2D(x=x,y=y,amplitude = self.amp_ferrers,a_bar =self.a_bar_ferrers,n_bar=self.n_bar_ferrers , x_0= self.x0_ferrers, y_0= self.y0_ferrers,
                ellip=self.ellip_ferrers, theta=self.theta_ferrers)
         return(model())
-
-"""
-clas = profiles()
-
-ser = clas.Sersic()
-exp = clas.Exponential()
-fer = clas.Ferrers()
-
-plt.figure()
-plt.imshow((ser))
-plt.figure()
-plt.imshow((exp))
-plt.figure()
-plt.imshow((fer))
-"""
