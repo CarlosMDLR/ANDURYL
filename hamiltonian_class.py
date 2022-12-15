@@ -11,6 +11,9 @@ import matplotlib.pyplot as pl
 import hamiltorch
 from profile_select import *
 
+def transform(param,a,b):
+    #return( a + (b-a) / (1.0+ torch.exp(-param)))
+    return(torch.logit((param-a)/(b-a)))
 class hamiltonian_model:
     def __init__(self,image):
         self.image = image
@@ -26,17 +29,25 @@ class hamiltonian_model:
             #pars[4]=y0
             #pars[5]=ellip
             #pars[6]=theta
+            a0 = transform(pars[0],0,60000)
+            a1 = transform(pars[1],0,400)
+            a2 = transform(pars[2],0,10)
+            a3 = transform(pars[3],0,400)
+            a4 = transform(pars[4],0,400)
+            a5 = transform(pars[5],0,10)
+            a6 = transform(pars[6],0,180)
             model_class = profiles(x_size=y.shape[0],y_size=y.shape[1],\
-                                   amp_sersic=pars[0],r_eff_sersic=pars[1],\
-                                       n_sersic=pars[2],x0_sersic=pars[3],\
-                                           y0_sersic=pars[4],\
-                                               ellip_sersic=pars[5],\
-                                                   theta_sersic=pars[6])
+                                   amp_sersic=a0,r_eff_sersic=a1,\
+                                       n_sersic=a2,x0_sersic=a3,\
+                                           y0_sersic=a4,\
+                                               ellip_sersic=a5,\
+                                                   theta_sersic=a6)
             model_method = getattr(model_class, 'Sersic')
             logL = -0.5 * torch.sum((model_method() - yt)**2 / sigman**2)
             return logL
         #hamiltorch.set_random_seed(123)
         paramis = np.array([24.51,80*0.396,5.10,154.94841,182.67604,0.765,5])
+        #paramis = np.array([12,12,1,100,100,0.1,0.1])
         params_init = torch.tensor(paramis,requires_grad=True)
         burn = 500
         step_size = 0.1

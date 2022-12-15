@@ -50,7 +50,7 @@ params = class_method()
 # =============================================================================
 #  Print del modelo (provisional)
 # =============================================================================
-params2=params[-1,:]
+params2=torch.mean(params,axis=(0))
 model_class = profiles(x_size=data.shape[0],y_size=data.shape[1],\
                        amp_sersic=params2[0],r_eff_sersic=params2[1],\
                            n_sersic=params2[2],x0_sersic=params2[3],\
