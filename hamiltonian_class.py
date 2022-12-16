@@ -12,8 +12,9 @@ import hamiltorch
 from profile_select import *
 
 def transform(param,a,b):
-    #return( a + (b-a) / (1.0+ torch.exp(-param)))
-    return(torch.logit((param-a)/(b-a)))
+    return( a + (b-a) / (1.0+ torch.exp(-param)))
+    #return(torch.logit((param-a)/(b-a)))
+
 class hamiltonian_model:
     def __init__(self,image):
         self.image = image
@@ -46,7 +47,7 @@ class hamiltonian_model:
             logL = -0.5 * torch.sum((model_method() - yt)**2 / sigman**2)
             return logL
         #hamiltorch.set_random_seed(123)
-        paramis = np.array([24.51,80*0.396,5.10,154.94841,182.67604,0.765,5])
+        paramis = np.array([24.51,80/0.396,5.10,154.94841,182.67604,1-0.765,5])
         #paramis = np.array([12,12,1,100,100,0.1,0.1])
         params_init = torch.tensor(paramis,requires_grad=True)
         burn = 500

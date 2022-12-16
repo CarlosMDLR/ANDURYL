@@ -82,7 +82,7 @@ class Sersic2D:
         x_min = -(self.x - self.x_0) * cos_theta - (self.y - self.y_0) * sin_theta
         z = torch.sqrt((x_maj / a) ** 2 + (x_min / b) ** 2)
 
-        return self.amplitude * torch.exp(-bn * (z ** (1 / self.n) - 1))
+        return self.amplitude * torch.exp(-bn * ((z) ** (1 / self.n) - 1))
     
 # =============================================================================
 class Exponential2D:
