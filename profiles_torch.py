@@ -75,13 +75,13 @@ class Sersic2D:
         """Two dimensional Sersic profile function."""
         #bn = torch.special.gammaincc(2.0* self.n, torch.tensor(0.5))
         bn = 2.*self.n - torch.tensor(0.327)
-        theta = -self.theta*torch.pi/180
+        theta = -self.theta*np.pi/180
         a, b = self.r_eff, (1 - self.ellip) * self.r_eff
         cos_theta, sin_theta = torch.cos(theta), torch.sin(theta)
         x_maj = -(self.x - self.x_0) * sin_theta + (self.y - self.y_0) * cos_theta
         x_min = -(self.x - self.x_0) * cos_theta - (self.y - self.y_0) * sin_theta
         z = torch.sqrt((x_maj / a) ** 2 + (x_min / b) ** 2)
-
+        
         return self.amplitude * torch.exp(-bn * ((z) ** (1 / self.n) - 1))
     
 # =============================================================================
@@ -132,7 +132,7 @@ class Exponential2D:
 
     def __call__(self):
         """Two dimensional Exponential profile function."""
-        theta = -self.theta*torch.pi/180
+        theta = -self.theta*np.pi/180
         a, b = self.h, (1 - self.ellip) * self.h
         cos_theta, sin_theta = torch.cos(theta), torch.sin(theta)
         x_maj = -(self.x - self.x_0) * sin_theta + (self.y - self.y_0) * cos_theta
@@ -194,7 +194,7 @@ class Ferrers2D:
     def __call__(self):
         """Two dimensional Ferrers profile function."""
 
-        theta = -self.theta*torch.pi/180
+        theta = -self.theta*np.pi/180
         a, b = self.a_bar, (1 - self.ellip) * self.a_bar
         cos_theta, sin_theta = torch.cos(theta), torch.sin(theta)
         x_maj = -(self.x - self.x_0) * sin_theta + (self.y - self.y_0) * cos_theta
