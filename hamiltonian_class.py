@@ -10,7 +10,9 @@ import numpy as np
 import matplotlib.pyplot as pl
 import hamiltorch
 import scipy.special as sp
+import torch.nn.functional as F
 from profile_select import *
+
 
 def transform(param,a,b):
     return( a + (b-a) / (1.0+ torch.exp(-param)))
@@ -20,14 +22,64 @@ def invtransform(param,a,b):
     # return( a + (b-a) / (1.0+ torch.exp(-param)))
     return(sp.logit((param-a)/(b-a)))
 
+# Too slow...
+# def conv2d_pyt(f, g):
+#     assert len(f.size()) == 2
+#     assert len(g.size()) == 2
+
+#     f_new = f.unsqueeze(0).unsqueeze(0)
+#     g_new = g.unsqueeze(0).unsqueeze(0)
+
+#     pad_y = (g.size(0) - 1) // 2
+#     pad_x = (g.size(1) - 1) // 2
+
+#     fcg = F.conv2d(f_new, g_new, bias=None, padding=(pad_y, pad_x))
+#     return fcg[0, 0, :, :]
+def matmul_complex(t1,t2):
+    return torch.view_as_complex(torch.stack((t1.real*t2.real - t1.imag*t2.imag, t1.real*t2.imag + t1.imag*t2.real),dim=2))
+def conv2d_fft(f, g):
+
+    size_y = f.size(0) + g.size(0) - 1
+    size_x = f.size(1) + g.size(1) - 1
+
+    f_new = torch.zeros((size_y, size_x))
+    g_new = torch.zeros((size_y, size_x))
+
+    # copy f to center
+    f_pad_y = (f_new.size(0) - f.size(0)) // 2
+    f_pad_x = (f_new.size(1) - f.size(1)) // 2
+    f_new[f_pad_y:-f_pad_y, f_pad_x:-f_pad_x] = f
+
+    # anchor of g is 0,0 (flip g and wrap circular)
+    g_center_y = g.size(0) // 2
+    g_center_x = g.size(1) // 2
+    g_y, g_x = torch.meshgrid(torch.arange(g.size(0)), torch.arange(g.size(1)))
+    g_new_y = (g_y.flip(0) - g_center_y) % g_new.size(0)
+    g_new_x = (g_x.flip(1) - g_center_x) % g_new.size(1)
+    g_new[g_new_y, g_new_x] = g[g_y, g_x].float()
+
+    # take fft of both f and g
+    F_f = torch.fft.rfft(f_new)
+    F_g = torch.fft.rfft(g_new)
+   
+    # inverse fft
+    fcg = torch.fft.irfft(matmul_complex(F_f,F_g))
+
+    # crop center before returning
+    return fcg[f_pad_y:-f_pad_y, f_pad_x:-f_pad_x]
+
 class hamiltonian_model:
-    def __init__(self, image, model_type='Sersic', sigman=1e-3):
+    def __init__(self, image,psf, model_type='Sersic', sigman=1e-3):
         self.image = image
+
+        self.psf = psf
 
         self.model_class = profiles(x_size=self.image.shape[0],y_size=self.image.shape[1])
 
         self.model_type = model_type
-
+        
+        self.psf_mod = torch.tensor(self.psf)
+        
         self.yt = torch.tensor(self.image)
 
         self.sigman = sigman * torch.max(self.yt)
@@ -35,13 +87,13 @@ class hamiltonian_model:
     def hamiltonian_sersic(self):
         
         def logPosteriorSersic(pars):
-            #pars[0]=amplitude
-            #pars[1]= Re
-            #pars[2]= n
-            #pars[3]=x0
-            #pars[4]=y0
-            #pars[5]=ellip
-            #pars[6]=theta            
+            # pars[0]=amplitude
+            # pars[1]= Re
+            # pars[2]= n
+            # pars[3]=x0
+            # pars[4]=y0
+            # pars[5]=ellip
+            # pars[6]=theta            
             
             a0 = transform(pars[0],0,60000)
             a1 = transform(pars[1],0.001,400)
@@ -57,13 +109,14 @@ class hamiltonian_model:
                                            y0_sersic=a4,\
                                                ellip_sersic=a5,\
                                                    theta_sersic=a6)
-            breakpoint()  
-            logL = -0.5 * torch.sum((model_method - self.yt)**2 / self.sigman**2)
+            modelin= conv2d_fft(model_method, self.psf_mod)
+            #breakpoint()  
+            logL = -0.5 * torch.sum((modelin - self.yt)**2 / self.sigman**2)
 
             return logL
 
         #hamiltorch.set_random_seed(123)        
-        paramis = np.array([24.51,80/0.396,5.10,154.94841,182.67604,1-0.765,5])
+        paramis = np.array([24.51,80/0.396,5.10,154.94841,182.67604,1-0.765,0.1])
         # paramis = np.array([12,12,1,100,100,0.1,0.1])
         paramis[0] = invtransform(paramis[0],0,60000)
         paramis[1] = invtransform(paramis[1],0.001,400)

@@ -75,7 +75,7 @@ class Sersic2D:
         """Two dimensional Sersic profile function."""
         #bn = torch.special.gammaincc(2.0* self.n, torch.tensor(0.5))
         bn = 2.*self.n - torch.tensor(0.327)
-        theta = -self.theta*np.pi/180
+        theta = -self.theta*torch.pi/180
         a, b = self.r_eff, (1 - self.ellip) * self.r_eff
         cos_theta, sin_theta = torch.cos(theta), torch.sin(theta)
         x_maj = -(self.x - self.x_0) * sin_theta + (self.y - self.y_0) * cos_theta

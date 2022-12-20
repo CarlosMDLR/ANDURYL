@@ -37,13 +37,14 @@ class_method = getattr(psf_class, psf_type)
 psf_image = class_method() 
 data_conv = convolve(data, psf_image)
 fig,ax = plt.subplots()
-plt.imshow((data_conv),cmap = cmap)
+mapi=plt.imshow((data_conv),cmap = cmap)
+plt.colorbar(mapi)
 plt.title("Datos convolucionados con PSF")
 # =============================================================================
 # Aplicacion del Hamiltonian
 # =============================================================================
 data_conv = data_conv.astype(np.float64)
-hamiltonian_class = hamiltonian_model(data_conv)
+hamiltonian_class = hamiltonian_model(data_conv,psf_image)
 class_method = getattr(hamiltonian_class, 'hamiltonian_sersic')
 params = class_method() 
 
@@ -51,15 +52,17 @@ params = class_method()
 #  Print del modelo (provisional)
 # =============================================================================
 params2=torch.mean(params,axis=(0))
-model_class = profiles(x_size=data.shape[0],y_size=data.shape[1],\
-                       amp_sersic=params2[0],r_eff_sersic=params2[1],\
-                           n_sersic=params2[2],x0_sersic=params2[3],\
-                               y0_sersic=params2[4],\
-                                   ellip_sersic=params2[5],\
-                                       theta_sersic=params2[6])
-model_method = getattr(model_class, 'Sersic')
-ma = model_method()
+model_class = profiles(x_size=data.shape[0],y_size=data.shape[1])
+model_method = model_class.Sersic(amp_sersic=params2[0],\
+                                  r_eff_sersic=params2[1], n_sersic=params2[2]\
+                                      ,x0_sersic=params2[3], \
+                                          y0_sersic=params2[4],\
+                                              ellip_sersic=params2[5], \
+                                                  theta_sersic=params2[6])
+ma = model_method
 a = ma.detach().numpy()
+b =  convolve(a, psf_image)
 fig,ax = plt.subplots()
-plt.imshow((a),cmap = cmap)
+mapi=plt.imshow( b,cmap = cmap)
+plt.colorbar(mapi)
 plt.title("Modelo")
