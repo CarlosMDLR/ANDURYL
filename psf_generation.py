@@ -31,7 +31,7 @@ class psf:
         self.power_moff=power_moff
     def Gaussian(self):
         y, x = np.mgrid[0:int(self.ysize), 0:int(self.xsize)]
-        gm1 = Gaussian2D(self.gauss_amp[0],self.mean_x[0] ,self.mean_y[0],self.stdv_x[0],self.stdv_y[0],self.theta_rot[0])
+        gm1 = Gaussian2D(self.gauss_amp,self.mean_x ,self.mean_y,self.stdv_x,self.stdv_y,self.theta_rot)
         g1 = gm1(x, y)
         g1 /= g1.sum()
         return(g1)

@@ -23,18 +23,18 @@ def invtransform(param,a,b):
     return(sp.logit((param-a)/(b-a)))
 
 # Too slow...
-# def conv2d_pyt(f, g):
-#     assert len(f.size()) == 2
-#     assert len(g.size()) == 2
+def conv2d_pyt(f, g):
+    assert len(f.size()) == 2
+    assert len(g.size()) == 2
 
-#     f_new = f.unsqueeze(0).unsqueeze(0)
-#     g_new = g.unsqueeze(0).unsqueeze(0)
+    f_new = f.unsqueeze(0).unsqueeze(0)
+    g_new = g.unsqueeze(0).unsqueeze(0)
 
-#     pad_y = (g.size(0) - 1) // 2
-#     pad_x = (g.size(1) - 1) // 2
+    pad_y = (g.size(0) - 1) // 2
+    pad_x = (g.size(1) - 1) // 2
 
-#     fcg = F.conv2d(f_new, g_new, bias=None, padding=(pad_y, pad_x))
-#     return fcg[0, 0, :, :]
+    fcg = F.conv2d(f_new, g_new, bias=None, padding=(pad_y, pad_x))
+    return fcg[0, 0, :, :]
 def matmul_complex(t1,t2):
     return torch.view_as_complex(torch.stack((t1.real*t2.real - t1.imag*t2.imag, t1.real*t2.imag + t1.imag*t2.real),dim=2))
 def conv2d_fft(f, g):
@@ -116,7 +116,7 @@ class hamiltonian_model:
             return logL
 
         #hamiltorch.set_random_seed(123)        
-        paramis = np.array([24.51,80/0.396,5.10,154.94841,182.67604,1-0.765,0.1])
+        paramis = np.array([24.51,80/0.396,5.10,154.94841,182.67604,1- 0.7658242620261781,84.6835058750300078])
         # paramis = np.array([12,12,1,100,100,0.1,0.1])
         paramis[0] = invtransform(paramis[0],0,60000)
         paramis[1] = invtransform(paramis[1],0.001,400)

@@ -26,25 +26,25 @@ galaxies,Ie,Re,n, ba_b, PA_bulge, B_T, X_center, Y_center, chi_2= \
 data=fits.getdata(galaxies[0])
 
 fig,ax = plt.subplots()
-plt.imshow((data),cmap = cmap)
-
+mapi=plt.imshow((data),cmap = cmap)
+plt.colorbar(mapi)
+plt.title("Datos")
 # =============================================================================
-# Generacion y convolucion con la PSF
+# Generacion de la PSF
 # =============================================================================
 psf_class = psf(xsize,ysize,psf_imgname,gauss_amp,mean_x, mean_y, theta_rot,\
                 stdv_x,stdv_y,moff_amp,moff_x, moff_y,width_moff,power_moff)
 class_method = getattr(psf_class, psf_type)
 psf_image = class_method() 
-data_conv = convolve(data, psf_image)
 fig,ax = plt.subplots()
-mapi=plt.imshow((data_conv),cmap = cmap)
+mapi=plt.imshow((psf_image),cmap = cmap)
 plt.colorbar(mapi)
-plt.title("Datos convolucionados con PSF")
+plt.title("PSF_Moffat")
 # =============================================================================
 # Aplicacion del Hamiltonian
 # =============================================================================
-data_conv = data_conv.astype(np.float64)
-hamiltonian_class = hamiltonian_model(data_conv,psf_image)
+
+hamiltonian_class = hamiltonian_model(data.astype(np.float64),psf_image)
 class_method = getattr(hamiltonian_class, 'hamiltonian_sersic')
 params = class_method() 
 

@@ -19,7 +19,7 @@
 #
 	0.1			  #|Telescope Scale (“/Pixel)
 	23.9			  #|Zero point with exposure time (J:26.2303 H:25.9463 SDSS: g:29.439, r:29.13, i:28.69)
-	Moffat	          	  #|PSF; Gaussian, Double_Gaussian, Moffat, Input_image
+	Moffat  	          #|PSF; Gaussian, Double_Gaussian, Moffat, Input_image
         psf_174                   #|PSF image name
 	51			  #|x size in pixels of the PSF
 	51		 	  #|y size in pixels of the PSF
@@ -53,15 +53,15 @@
  	30			  #|Mean of the Gaussian in x.
 	30			  #|Mean of the Gaussian in y.
 	0 			  #|The rotation angle in radians. The rotation angle increases counterclockwise (optional). 
-	4			  #|Standard deviation of the Gaussian in x before rotating by theta.
-	4			  #|Standard deviation of the Gaussian in y before rotating by theta.
+	4.14			  #|Standard deviation of the Gaussian in x before rotating by theta.
+	4.14			  #|Standard deviation of the Gaussian in y before rotating by theta.
 #===========================================
 # MOFFAT PARAMETERS
 #===========================================
-	100			  #|Amplitude of the model.
+	0.1			  #|Amplitude of the model.
 	25			  #|x position of the maximum of the Moffat model.
  	25			  #|y position of the maximum of the Moffat model.
-	4			  #|Core width of the Moffat model.
+	3.84			  #|Core width of the Moffat model.
 	4.14			  #|Power index of the Moffat model.
 #
 #===============================================================================================
