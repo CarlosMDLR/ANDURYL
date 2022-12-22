@@ -17,7 +17,7 @@ import cmasher as cmr
 from astropy.convolution import convolve
 
 # =============================================================================
-# Eleccion de mapa de colores y lectura de datos
+# Choosing color map and reading data
 # =============================================================================
 cmap = plt.get_cmap('cmr.redshift')
 galaxies,Ie,Re,n, ba_b, PA_bulge, B_T, X_center, Y_center, chi_2= \
@@ -25,12 +25,15 @@ galaxies,Ie,Re,n, ba_b, PA_bulge, B_T, X_center, Y_center, chi_2= \
 
 data=fits.getdata(galaxies[0])
 
+box = data[int(Y_center)-10:int(Y_center )+10,int(X_center)-10:int(X_center)+10]
+norm_I = np.max(box)
+data = data/norm_I
 fig,ax = plt.subplots()
-mapi=plt.imshow((data),cmap = cmap)
+mapi=plt.imshow((data*norm_I),cmap = cmap)
 plt.colorbar(mapi)
 plt.title("Datos")
 # =============================================================================
-# Generacion de la PSF
+# Generation of the PSF
 # =============================================================================
 psf_class = psf(xsize,ysize,psf_imgname,gauss_amp,mean_x, mean_y, theta_rot,\
                 stdv_x,stdv_y,moff_amp,moff_x, moff_y,width_moff,power_moff)
@@ -41,7 +44,7 @@ mapi=plt.imshow((psf_image),cmap = cmap)
 plt.colorbar(mapi)
 plt.title("PSF_Moffat")
 # =============================================================================
-# Aplicacion del Hamiltonian
+# Application of the Hamiltorch
 # =============================================================================
 
 hamiltonian_class = hamiltonian_model(data.astype(np.float64),psf_image)
@@ -49,7 +52,7 @@ class_method = getattr(hamiltonian_class, 'hamiltonian_sersic')
 params = class_method() 
 
 # =============================================================================
-#  Print del modelo (provisional)
+#  Model print
 # =============================================================================
 params2=torch.mean(params,axis=(0))
 model_class = profiles(x_size=data.shape[0],y_size=data.shape[1])
@@ -63,6 +66,6 @@ ma = model_method
 a = ma.detach().numpy()
 b =  convolve(a, psf_image)
 fig,ax = plt.subplots()
-mapi=plt.imshow( b,cmap = cmap)
+mapi=plt.imshow( b*norm_I,cmap = cmap)
 plt.colorbar(mapi)
 plt.title("Modelo")

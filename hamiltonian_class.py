@@ -101,7 +101,7 @@ class hamiltonian_model:
             # pars[5]=ellip
             # pars[6]=theta            
             
-            a0,lodget0 = transform(pars[0],0,60000)
+            a0,lodget0 = transform(pars[0],0,1)
             a1,lodget1 = transform(pars[1],0.001,400)
             a2,lodget2 = transform(pars[2],0.001,10)
             a3,lodget3 = transform(pars[3],0,400)
@@ -117,17 +117,17 @@ class hamiltonian_model:
                                                    theta_sersic=a6)
             modelin= conv2d_pyt(model_method, self.psf_mod)
             #breakpoint()  
-            logL = (-0.5 * torch.sum((modelin - self.yt)**2 / self.sigman**2))+lodget0.sum()+lodget1.sum()\
+            logL = (-0.5 * torch.sum(((modelin - self.yt)**2) / (self.sigman**2)))+lodget0.sum()+lodget1.sum()\
                 +lodget2.sum()+lodget3.sum()+lodget4.sum()+lodget5.sum()+lodget6.sum()
            
-            breakpoint()
+            #breakpoint()
             return logL
 
         #hamiltorch.set_random_seed(123)        
-        paramis = np.array([24.51,80/0.396,5.10,154.94841,182.67604,1- 0.7658242620261781,84.6835058750300078])
-        #paramis = np.array([20,200,1,100,100,0.1,0.1])
+        #paramis = np.array([24.51/3922.3203,80/0.396,5.10,154.94841,182.67604,1- 0.7658242620261781,84.6835058750300078])
+        paramis = np.array([0.1,200,1,100,100,0.1,0.1])
         
-        paramis[0] = invtransform(paramis[0],0,60000)
+        paramis[0] = invtransform(paramis[0],0,1)
         paramis[1] = invtransform(paramis[1],0.001,400)
         paramis[2] = invtransform(paramis[2],0.001,10)
         paramis[3] = invtransform(paramis[3],0,400)
@@ -152,7 +152,7 @@ class hamiltonian_model:
                                         desired_accept_rate=0.8)
         params_nuts = torch.cat(params_nuts[1:]).reshape(len(params_nuts[1:]),-1)
 
-        params_nuts[:, 0],_ = transform(params_nuts[:, 0],0,60000)
+        params_nuts[:, 0],_ = transform(params_nuts[:, 0],0,1)
         params_nuts[:, 1],_ = transform(params_nuts[:, 1],0.001,400)
         params_nuts[:, 2],_ = transform(params_nuts[:, 2],0.001,10)
         params_nuts[:, 3],_ = transform(params_nuts[:, 3],0,400)
