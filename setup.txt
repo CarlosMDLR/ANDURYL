@@ -21,8 +21,8 @@
 	23.9			  #|Zero point with exposure time (J:26.2303 H:25.9463 SDSS: g:29.439, r:29.13, i:28.69)
 	Moffat  	          #|PSF; Gaussian, Double_Gaussian, Moffat, Input_image
         psf_174                   #|PSF image name
-	51			  #|x size in pixels of the PSF
-	51		 	  #|y size in pixels of the PSF
+	21			  #|x size in pixels of the PSF
+	21		 	  #|y size in pixels of the PSF
 	0			  #|Convolution method; 0:FFT, 1:Integrals 
 	3.84			  #|Seeing FWHM (in pixel)
 	285.679709		  #|Sky values 
@@ -41,8 +41,8 @@
 # GAUSSIAN PARAMETERS
 #===========================================
 	100			  #|Amplitude (peak value) of the Gaussian.
- 	25			  #|Mean of the Gaussian in x.
-	25			  #|Mean of the Gaussian in y.
+ 	10			  #|Mean of the Gaussian in x.
+	10			  #|Mean of the Gaussian in y.
 	0			  #|The rotation angle in radians. The rotation angle increases counterclockwise (optional). 
 	3			  #|Standard deviation of the Gaussian in x before rotating by theta.
 	3			  #|Standard deviation of the Gaussian in y before rotating by theta.
@@ -59,8 +59,8 @@
 # MOFFAT PARAMETERS
 #===========================================
 	0.1			  #|Amplitude of the model.
-	25			  #|x position of the maximum of the Moffat model.
- 	25			  #|y position of the maximum of the Moffat model.
+	10			  #|x position of the maximum of the Moffat model.
+ 	10			  #|y position of the maximum of the Moffat model.
 	3.84			  #|Core width of the Moffat model.
 	4.14			  #|Power index of the Moffat model.
 #
