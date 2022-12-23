@@ -39,7 +39,7 @@ class profiles:
         # self.ellip_ferrers=ellip_ferrers
         # self.theta_ferrers=theta_ferrers
 
-        self.x, self.y = torch.meshgrid(torch.arange(int(self.x_size)), torch.arange(int(self.y_size)))
+        self.y, self.x = torch.meshgrid(torch.arange(int(self.y_size)), torch.arange(int(self.x_size)))
 
     def Sersic(self, amp_sersic=1, r_eff_sersic=25, n_sersic=1, x0_sersic=50,y0_sersic=50, ellip_sersic=.5, theta_sersic=20):        
         model = Sersic2D(x=self.x,y=self.y,amplitude = amp_sersic, r_eff =r_eff_sersic, n= n_sersic, x_0= x0_sersic, y_0= y0_sersic,

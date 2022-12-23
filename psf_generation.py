@@ -36,7 +36,7 @@ class psf:
         g1 /= g1.sum()
         return(g1)
     def Moffat(self): 
-        x, y = np.mgrid[0:int(self.xsize), 0:int(self.ysize)]
+        y, x = np.mgrid[0:int(self.ysize), 0:int(self.xsize)]
         mf = Moffat2D( self.moff_amp,self.moff_x,self.moff_y,self.width_moff,self.power_moff)
         m = mf(x,y)
         m /=m.sum()

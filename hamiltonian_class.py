@@ -82,7 +82,7 @@ class hamiltonian_model:
 
         self.nx, self.ny = self.image.shape
 
-        self.model_class = profiles(x_size=self.image.shape[0],y_size=self.image.shape[1])
+        self.model_class = profiles(y_size=self.image.shape[0],x_size=self.image.shape[1])
 
         self.model_type = model_type
         
@@ -93,7 +93,7 @@ class hamiltonian_model:
 
         self.sigman = sigman * torch.max(self.yt)
 
-        self.nx, self.ny = self.yt.shape
+        self.ny, self.nx = self.yt.shape
 
     def conv2d_fft_psf(self, f):
         ff = torch.fft.fft2(f)
@@ -134,47 +134,47 @@ class hamiltonian_model:
             return logL
 
         #########################################################
-        # Test a normal fit to the observations using gradient descent
+        # # Test a normal fit to the observations using gradient descent
 
-        # Start from the center of the volume
-        paramis_transformed = np.zeros(7)                
-        paramis_init = torch.tensor(paramis_transformed,requires_grad=True)
+        # # Start from the center of the volume
+        # paramis_transformed = np.zeros(7)                
+        # paramis_init = torch.tensor(paramis_transformed,requires_grad=True)
 
-        # Optimize the parameters using Adam
-        optimizer = torch.optim.Adam([paramis_init], lr=0.1)
+        # # Optimize the parameters using Adam
+        # optimizer = torch.optim.Adam([paramis_init], lr=0.1)
 
-        pbar = tqdm(total=1000)
-        for i in range(1000):
-            optimizer.zero_grad()
-            loss = -logPosteriorSersic(paramis_init)
-            loss.backward()
-            optimizer.step()
-            pbar.set_postfix(loss=loss.item())
-            pbar.update()
+        # pbar = tqdm(total=2000)
+        # for i in range(2000):
+        #     optimizer.zero_grad()
+        #     loss = -logPosteriorSersic(paramis_init)
+        #     loss.backward()
+        #     optimizer.step()
+        #     pbar.set_postfix(loss=loss.item())
+        #     pbar.update()
 
-        initial = torch.zeros(7)
-        initial[0], _ = transform(paramis_init[0],0,1)
-        initial[1], _ = transform(paramis_init[1],0.001,400)
-        initial[2], _ = transform(paramis_init[2],0.001,10)
-        initial[3], _ = transform(paramis_init[3],0,self.nx)
-        initial[4], _ = transform(paramis_init[4],0,self.ny)
-        initial[5], _ = transform(paramis_init[5],0,0.999)
-        initial[6], _ = transform(paramis_init[6],0,180)
+        # initial = torch.zeros(7)
+        # initial[0], _ = transform(paramis_init[0],0,1)
+        # initial[1], _ = transform(paramis_init[1],0.001,400)
+        # initial[2], _ = transform(paramis_init[2],0.001,10)
+        # initial[3], _ = transform(paramis_init[3],0,self.nx)
+        # initial[4], _ = transform(paramis_init[4],0,self.ny)
+        # initial[5], _ = transform(paramis_init[5],0,0.999)
+        # initial[6], _ = transform(paramis_init[6],0,180)
 
-        if (self.model_type == 'Sersic'):
-            model_method = self.model_class.Sersic(amp_sersic=initial[0],r_eff_sersic=initial[1],\
-                                    n_sersic=initial[2],x0_sersic=initial[3],\
-                                        y0_sersic=initial[4],\
-                                            ellip_sersic=initial[5],\
-                                                theta_sersic=initial[6])
-        modelin= self.conv2d_fft_psf(model_method).detach().numpy()
+        # if (self.model_type == 'Sersic'):
+        #     model_method = self.model_class.Sersic(amp_sersic=initial[0],r_eff_sersic=initial[1],\
+        #                             n_sersic=initial[2],x0_sersic=initial[3],\
+        #                                 y0_sersic=initial[4],\
+        #                                     ellip_sersic=initial[5],\
+        #                                         theta_sersic=initial[6])
+        # modelin= self.conv2d_fft_psf(model_method).detach().numpy()
 
-        fig, ax = pl.subplots(nrows=1, ncols=2, figsize=(10, 5))
-        ax[0].imshow(self.yt)
-        ax[1].imshow(modelin)
-
-        print('Optimized parameters: ', initial)
-        breakpoint()
+        # fig, ax = pl.subplots(nrows=1, ncols=2, figsize=(10, 5))
+        # ax[0].imshow(self.yt)
+        # ax[1].imshow(modelin)
+        # print(" ")
+        # print('Optimized parameters: ', initial)
+        # #breakpoint()
 
 
         #########################################################
@@ -182,6 +182,7 @@ class hamiltonian_model:
         #hamiltorch.set_random_seed(123)        
         #paramis = np.array([24.51/3922.3203,80/0.396,5.10,154.94841,182.67604,1- 0.7658242620261781,84.6835058750300078])
         paramis = np.array([0.1,200,1,100,100,0.1,0.1])
+        #paramis = np.array([0.1,1,1,1,1,0.1,0.1])
         
         paramis[0] = invtransform(paramis[0],0,1)
         paramis[1] = invtransform(paramis[1],0.001,400)
@@ -193,10 +194,10 @@ class hamiltonian_model:
         
         paramis_init = torch.tensor(paramis,requires_grad=True)
         
-        burn = 10
-        step_size = 0.1
-        L = 5
-        N = 110
+        burn = 1000
+        step_size = 10
+        L = 60
+        N = 1000
         N_nuts = burn + N
         params_nuts = hamiltorch.sample(log_prob_func=logPosteriorSersic, 
                                         params_init=paramis_init, 

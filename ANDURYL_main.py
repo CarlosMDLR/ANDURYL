@@ -15,7 +15,7 @@ from psf_generation import *
 from hamiltonian_class import *
 import cmasher as cmr
 from astropy.convolution import convolve
-
+from matplotlib.ticker import FormatStrFormatter
 # =============================================================================
 # Choosing color map and reading data
 # =============================================================================
@@ -24,10 +24,11 @@ galaxies,Ie,Re,n, ba_b, PA_bulge, B_T, X_center, Y_center, chi_2= \
     data_reader(user_in_file)
 
 data=fits.getdata(galaxies[0])
-
+mask = fits.getdata("I_recor_mask.fits")
 box = data[int(Y_center)-10:int(Y_center )+10,int(X_center)-10:int(X_center)+10]
 norm_I = np.max(box)
 data = data/norm_I
+data = data-((mask/np.max(mask)*data))
 fig,ax = plt.subplots()
 mapi=plt.imshow((data*norm_I),cmap = cmap)
 plt.colorbar(mapi)
@@ -35,7 +36,7 @@ plt.title("Datos")
 # =============================================================================
 # Generation of the PSF
 # =============================================================================
-nx, ny = data.shape
+ny, nx = data.shape
 moff_x = nx / 2.0
 moff_y = ny / 2.0
 
@@ -54,12 +55,12 @@ plt.title("PSF_Moffat")
 hamiltonian_class = hamiltonian_model(data.astype(np.float64),psf_image)
 class_method = getattr(hamiltonian_class, 'hamiltonian_sersic')
 params = class_method() 
-
+comprobar = params.detach().numpy()
 # =============================================================================
 #  Model print
 # =============================================================================
 params2=torch.mean(params,axis=(0))
-model_class = profiles(x_size=data.shape[0],y_size=data.shape[1])
+model_class = profiles(x_size=data.shape[1],y_size=data.shape[0])
 model_method = model_class.Sersic(amp_sersic=params2[0],\
                                   r_eff_sersic=params2[1], n_sersic=params2[2]\
                                       ,x0_sersic=params2[3], \
@@ -67,9 +68,18 @@ model_method = model_class.Sersic(amp_sersic=params2[0],\
                                               ellip_sersic=params2[5], \
                                                   theta_sersic=params2[6])
 ma = model_method
-a = ma.detach().numpy()
-b =  convolve(a, psf_image)
+b =  hamiltonian_class.conv2d_fft_psf(ma)
 fig,ax = plt.subplots()
-mapi=plt.imshow( b*norm_I,cmap = cmap)
+mapi=plt.imshow( b.detach().numpy()*norm_I,cmap = cmap)
 plt.colorbar(mapi)
 plt.title("Modelo")
+
+fig, ax = pl.subplots(nrows=4, ncols=2, figsize=(10, 15))
+ax[0][0].hist(comprobar[:,0],label=r"$I_e$");ax[0][0].legend();ax[0][0].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
+ax[1][0].hist(comprobar[:,1],label=r"$R_e$");ax[1][0].legend();ax[1][0].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
+ax[2][0].hist(comprobar[:,2],label=r"$n$");ax[2][0].legend();ax[2][0].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
+ax[3][0].hist(comprobar[:,3],label=r"$x_0$");ax[3][0].legend();ax[3][0].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
+ax[0][1].hist(comprobar[:,4],label=r"$y_0$");ax[0][1].legend();ax[0][1].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
+ax[1][1].hist(comprobar[:,5],label=r"$\varepsilon$");ax[1][1].legend();ax[1][1].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
+ax[2][1].hist(comprobar[:,6],label=r"$\theta$");ax[2][1].legend();ax[2][1].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
+ax[3][1].imshow( b.detach().numpy()*norm_I,cmap = cmap)
