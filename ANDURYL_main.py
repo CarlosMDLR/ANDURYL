@@ -35,7 +35,11 @@ plt.title("Datos")
 # =============================================================================
 # Generation of the PSF
 # =============================================================================
-psf_class = psf(xsize,ysize,psf_imgname,gauss_amp,mean_x, mean_y, theta_rot,\
+nx, ny = data.shape
+moff_x = nx / 2.0
+moff_y = ny / 2.0
+
+psf_class = psf(nx,ny,psf_imgname,gauss_amp,mean_x, mean_y, theta_rot,\
                 stdv_x,stdv_y,moff_amp,moff_x, moff_y,width_moff,power_moff)
 class_method = getattr(psf_class, psf_type)
 psf_image = class_method() 
