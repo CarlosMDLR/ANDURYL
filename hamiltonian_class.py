@@ -26,60 +26,16 @@ def transform(param, a, b):
     return transformed, logdet
 
 def invtransform(param,a,b):
-    # return( a + (b-a) / (1.0+ torch.exp(-param)))
     return(sp.logit((param-a)/(b-a)))
 
-# Too slow...
-def conv2d_pyt(f, g):
-    assert len(f.size()) == 2
-    assert len(g.size()) == 2
-
-    f_new = f.unsqueeze(0).unsqueeze(0)
-    g_new = g.unsqueeze(0).unsqueeze(0)
-
-    pad_y = (g.size(0) - 1) // 2
-    pad_x = (g.size(1) - 1) // 2
-
-    fcg = F.conv2d(f_new, g_new, bias=None, padding=(pad_y, pad_x))
-    return fcg[0, 0, :, :]
-def matmul_complex(t1,t2):
-    return torch.view_as_complex(torch.stack((t1.real*t2.real - t1.imag*t2.imag, t1.real*t2.imag + t1.imag*t2.real),dim=2))
-def conv2d_fft(f, g):
-
-    size_y = f.size(0) + g.size(0) - 1
-    size_x = f.size(1) + g.size(1) - 1
-
-    f_new = torch.zeros((size_y, size_x))
-    g_new = torch.zeros((size_y, size_x))
-
-    # copy f to center
-    f_pad_y = (f_new.size(0) - f.size(0)) // 2
-    f_pad_x = (f_new.size(1) - f.size(1)) // 2
-    f_new[f_pad_y:-f_pad_y, f_pad_x:-f_pad_x] = f
-
-    # anchor of g is 0,0 (flip g and wrap circular)
-    g_center_y = g.size(0) // 2
-    g_center_x = g.size(1) // 2
-    g_y, g_x = torch.meshgrid(torch.arange(g.size(0)), torch.arange(g.size(1)))
-    g_new_y = (g_y.flip(0) - g_center_y) % g_new.size(0)
-    g_new_x = (g_x.flip(1) - g_center_x) % g_new.size(1)
-    g_new[g_new_y, g_new_x] = g[g_y, g_x].float()
-
-    # take fft of both f and g
-    F_f = torch.fft.rfft(f_new)
-    F_g = torch.fft.rfft(g_new)
-   
-    # inverse fft
-    fcg = torch.fft.irfft(matmul_complex(F_f,F_g))
-
-    # crop center before returning
-    return fcg[f_pad_y:-f_pad_y, f_pad_x:-f_pad_x]
-
 class hamiltonian_model:
-    def __init__(self, image,psf, model_type='Sersic', sigman=1e-3):
+    def __init__(self, image,psf,mask,noise, model_type='Sersic'):
         self.image = image
         self.psf = psf
-
+        self.mask=mask/np.max(mask)
+        self.trues = np.where((self.mask !=1))
+        self.trues_i=self.trues[0]
+        self.trues_j=self.trues[1]
         self.nx, self.ny = self.image.shape
 
         self.model_class = profiles(y_size=self.image.shape[0],x_size=self.image.shape[1])
@@ -91,7 +47,7 @@ class hamiltonian_model:
         
         self.yt = torch.tensor(self.image)
 
-        self.sigman = sigman * torch.max(self.yt)
+        self.sigman = noise
 
         self.ny, self.nx = self.yt.shape
 
@@ -126,8 +82,9 @@ class hamiltonian_model:
                                                    theta_sersic=a6)
             # modelin= conv2d_pyt(model_method, self.psf_mod)
             modelin= self.conv2d_fft_psf(model_method)
-            #breakpoint()  
-            logL = (-0.5 * torch.sum(((modelin - self.yt)**2) / (self.sigman**2)))+lodget0.sum()+lodget1.sum()\
+            #breakpoint() 
+            
+            logL = (-0.5 * torch.sum(((modelin[self.trues_i[:],self.trues_j[:]] - self.yt[self.trues_i[:],self.trues_j[:]])**2) / (self.sigman**2)))+lodget0.sum()+lodget1.sum()\
                 +lodget2.sum()+lodget3.sum()+lodget4.sum()+lodget5.sum()+lodget6.sum()
            
             #breakpoint()
@@ -194,10 +151,10 @@ class hamiltonian_model:
         
         paramis_init = torch.tensor(paramis,requires_grad=True)
         
-        burn = 1000
-        step_size = 10
-        L = 60
-        N = 1000
+        burn = 500
+        step_size = 100
+        L = 10
+        N = 2000
         N_nuts = burn + N
         params_nuts = hamiltorch.sample(log_prob_func=logPosteriorSersic, 
                                         params_init=paramis_init, 

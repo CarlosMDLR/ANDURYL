@@ -51,8 +51,9 @@ plt.title("PSF_Moffat")
 # =============================================================================
 # Application of the Hamiltorch
 # =============================================================================
-
-hamiltonian_class = hamiltonian_model(data.astype(np.float64),psf_image)
+npix=nx*ny
+noise = np.sqrt(sky_sigm*npix+(readout_noise**2)*npix)/norm_I
+hamiltonian_class = hamiltonian_model(data.astype(np.float64),psf_image,mask,noise)
 class_method = getattr(hamiltonian_class, 'hamiltonian_sersic')
 params = class_method() 
 comprobar = params.detach().numpy()
