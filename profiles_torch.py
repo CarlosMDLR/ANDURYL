@@ -81,7 +81,7 @@ class Sersic2D:
         x_min = -(self.x - self.x_0) * sin_theta + (self.y - self.y_0) * cos_theta
         x_maj = -(self.x - self.x_0) * cos_theta - (self.y - self.y_0) * sin_theta
 
-        z = torch.sqrt((x_maj / a) ** 2 + (x_min / b) ** 2)
+        z = torch.sqrt((x_min / a) ** 2 + (x_maj / b) ** 2)
         # theta = -self.theta*torch.pi/180
         # rx = self.x - self.x_0; ry = self.y - self.y_0
         # rxrot = (-rx *torch.sin(theta)) + (ry * torch.cos(theta))
