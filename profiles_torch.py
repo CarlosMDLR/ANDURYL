@@ -73,22 +73,17 @@ class Sersic2D:
 
     def __call__(self):
         """Two dimensional Sersic profile function."""
-        #bn = torch.special.gammaincc(2.0* self.n, torch.tensor(0.5))
-        bn = (2.*self.n) - torch.tensor(0.327)
-        theta = -self.theta*np.pi/180
+ 
+        bn = (2.0*self.n) - torch.tensor(0.327)
+        theta = self.theta*np.pi/180
         a, b = self.r_eff, (1-self.ellip) * self.r_eff
         cos_theta, sin_theta = torch.cos(theta), torch.sin(theta)
         x_min = -(self.x - self.x_0) * sin_theta + (self.y - self.y_0) * cos_theta
         x_maj = -(self.x - self.x_0) * cos_theta - (self.y - self.y_0) * sin_theta
 
-        z = torch.sqrt((x_min / a) ** 2 + (x_maj / b) ** 2)
-        # theta = -self.theta*torch.pi/180
-        # rx = self.x - self.x_0; ry = self.y - self.y_0
-        # rxrot = (-rx *torch.sin(theta)) + (ry * torch.cos(theta))
-        # ryrot = (-rx *torch.cos(theta)) - (ry * torch.sin(theta))
-        # r = torch.sqrt(rxrot**2 + (ryrot/(self.ellip))**2)
-        # z = r/(self.r_eff)
-        return self.amplitude * torch.exp(-bn * ((z**(1/self.n)) - 1))
+        z = torch.sqrt(((x_min / a)**2) + ((x_maj/b)**2))
+
+        return (self.amplitude * torch.exp(-bn*(((z**(1/self.n))) - 1)))
     
 # =============================================================================
 class Exponential2D:

@@ -29,7 +29,7 @@ def invtransform(param,a,b):
     return(sp.logit((param-a)/(b-a)))
 
 class hamiltonian_model:
-    def __init__(self, image,psf,mask,noise, model_type='Sersic'):
+    def __init__(self, image,psf,mask,sky_sigma,read_noise,gain,normfactor, model_type='Sersic'):
         self.image = image
         self.psf = psf
         self.mask=mask/np.max(mask)
@@ -37,7 +37,10 @@ class hamiltonian_model:
         self.trues_i=self.trues[0]
         self.trues_j=self.trues[1]
         self.nx, self.ny = self.image.shape
-
+        self.sky_sigma=sky_sigma
+        self.read_noise=read_noise
+        self.normfactor=normfactor
+        self.gain=gain
         self.model_class = profiles(y_size=self.image.shape[0],x_size=self.image.shape[1])
 
         self.model_type = model_type
@@ -46,8 +49,6 @@ class hamiltonian_model:
         self.psf_fft = torch.fft.fft2(self.psf_mod)
         
         self.yt = torch.tensor(self.image)
-
-        self.sigman = noise
 
         self.ny, self.nx = self.yt.shape
 
@@ -81,13 +82,13 @@ class hamiltonian_model:
                                                ellip_sersic=a5,\
                                                    theta_sersic=a6)
             # modelin= conv2d_pyt(model_method, self.psf_mod)
-            modelin= self.conv2d_fft_psf(model_method)
+            modelin= self.conv2d_fft_psf(model_method)/self.normfactor
             #breakpoint() 
-            
-            logL = (-0.5 * torch.sum(((modelin[self.trues_i[:],self.trues_j[:]] - self.yt[self.trues_i[:],self.trues_j[:]])**2) / (self.sigman**2)))+lodget0.sum()+lodget1.sum()\
+            noise = torch.sqrt((modelin*self.normfactor+self.sky_sigma*self.gain +self.read_noise**2 ))/np.sqrt(self.normfactor)
+            logL = (-0.5 * torch.sum(((modelin[self.trues_i[:],self.trues_j[:]] - self.yt[self.trues_i[:],self.trues_j[:]])**2) / (noise[self.trues_i[:],self.trues_j[:]]**2)))+lodget0.sum()+lodget1.sum()\
                 +lodget2.sum()+lodget3.sum()+lodget4.sum()+lodget5.sum()+lodget6.sum()
            
-            #breakpoint()
+            
             return logL
 
         #########################################################
@@ -138,21 +139,21 @@ class hamiltonian_model:
 
         #hamiltorch.set_random_seed(123)        
         #paramis = np.array([24.51/3922.3203,80/0.396,5.10,154.94841,182.67604,1- 0.7658242620261781,84.6835058750300078])
-        paramis = np.array([0.1,200,1,100,100,0.1,0.1])
+        paramis = np.array([0.3,100,0.5,120,110,0.4,30])
         #paramis = np.array([0.1,1,1,1,1,0.1,0.1])
         
-        paramis[0] = invtransform(paramis[0],0,1)
-        paramis[1] = invtransform(paramis[1],0.001,400)
-        paramis[2] = invtransform(paramis[2],0.001,10)
-        paramis[3] = invtransform(paramis[3],0,400)
-        paramis[4] = invtransform(paramis[4],0,400)
-        paramis[5] = invtransform(paramis[5],0,0.999)
-        paramis[6] = invtransform(paramis[6],0,180)
+        paramis[0] = invtransform(paramis[0],0,1-1e-2)
+        paramis[1] = invtransform(paramis[1],0.001,400-1)
+        paramis[2] = invtransform(paramis[2],0.001,10-1e-1)
+        paramis[3] = invtransform(paramis[3],0,self.nx+1)
+        paramis[4] = invtransform(paramis[4],0,self.ny+1)
+        paramis[5] = invtransform(paramis[5],0,0.999-1e-2)
+        paramis[6] = invtransform(paramis[6],0,180-1)
         
         paramis_init = torch.tensor(paramis,requires_grad=True)
         
-        burn = 500
-        step_size = 100
+        burn = 1000
+        step_size = 10
         L = 10
         N = 2000
         N_nuts = burn + N
@@ -166,13 +167,13 @@ class hamiltonian_model:
                                         desired_accept_rate=0.8)
         params_nuts = torch.cat(params_nuts[1:]).reshape(len(params_nuts[1:]),-1)
 
-        params_nuts[:, 0],_ = transform(params_nuts[:, 0],0,1)
-        params_nuts[:, 1],_ = transform(params_nuts[:, 1],0.001,400)
-        params_nuts[:, 2],_ = transform(params_nuts[:, 2],0.001,10)
-        params_nuts[:, 3],_ = transform(params_nuts[:, 3],0,400)
-        params_nuts[:, 4],_ = transform(params_nuts[:, 4],0,400)
-        params_nuts[:, 5],_ = transform(params_nuts[:, 5],0,0.999)
-        params_nuts[:, 6],_ = transform(params_nuts[:, 6],0,180)
+        params_nuts[:, 0],_ = transform(params_nuts[:, 0],0,1-1e-2)
+        params_nuts[:, 1],_ = transform(params_nuts[:, 1],0.001,400-1)
+        params_nuts[:, 2],_ = transform(params_nuts[:, 2],0.001,10+1e-1)
+        params_nuts[:, 3],_ = transform(params_nuts[:, 3],0,self.nx+1)
+        params_nuts[:, 4],_ = transform(params_nuts[:, 4],0,self.ny+1)
+        params_nuts[:, 5],_ = transform(params_nuts[:, 5],0,0.999-1e-2)
+        params_nuts[:, 6],_ = transform(params_nuts[:, 6],0,180-1)
 
         #params_nuts = torch.cat(params_nuts[1:]).reshape(len(params_nuts[1:]),-1).numpy()
         return(params_nuts)

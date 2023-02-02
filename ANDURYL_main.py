@@ -23,12 +23,11 @@ cmap = plt.get_cmap('cmr.redshift')
 galaxies,Ie,Re,n, ba_b, PA_bulge, B_T, X_center, Y_center, chi_2= \
     data_reader(user_in_file)
 
-data=fits.getdata(galaxies[0])
+data=fits.getdata(galaxies[0])*gain
 mask = fits.getdata("I_recor_mask.fits")
 box = data[int(Y_center)-10:int(Y_center )+10,int(X_center)-10:int(X_center)+10]
 norm_I = np.max(box)
 data = data/norm_I
-data = data-((mask/np.max(mask)*data))
 fig,ax = plt.subplots()
 mapi=plt.imshow((data*norm_I),cmap = cmap)
 plt.colorbar(mapi)
@@ -51,9 +50,9 @@ plt.title("PSF_Moffat")
 # =============================================================================
 # Application of the Hamiltorch
 # =============================================================================
-npix=nx*ny
-noise = np.sqrt(sky_sigm*npix+(readout_noise**2)*npix)/norm_I
-hamiltonian_class = hamiltonian_model(data.astype(np.float64),psf_image,mask,noise)
+#npix=nx*ny
+#noise = np.sqrt(sky_sigm*npix+(readout_noise**2)*npix)/norm_I
+hamiltonian_class = hamiltonian_model(data.astype(np.float64),psf_image,mask,sky_sigm,readout_noise,gain,norm_I)
 class_method = getattr(hamiltonian_class, 'hamiltonian_sersic')
 params = class_method() 
 comprobar = params.detach().numpy()
