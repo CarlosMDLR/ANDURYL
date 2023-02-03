@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Nov 17 21:27:44 2022
-
 @author: Usuario
 """
 

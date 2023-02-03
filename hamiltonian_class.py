@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed Nov 23 20:18:01 2022
-
 @author: Usuario
 """
 
@@ -152,9 +151,9 @@ class hamiltonian_model:
         
         paramis_init = torch.tensor(paramis,requires_grad=True)
         
-        burn = 1000
-        step_size = 10
-        L = 10
+        burn = 500
+        step_size = 1e-36
+        L =10
         N = 2000
         N_nuts = burn + N
         params_nuts = hamiltorch.sample(log_prob_func=logPosteriorSersic, 
