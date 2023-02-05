@@ -15,6 +15,8 @@ from hamiltonian_class import *
 import cmasher as cmr
 from astropy.convolution import convolve
 from matplotlib.ticker import FormatStrFormatter
+from getdist import plots, gaussian_mixtures,MCSamples
+
 # =============================================================================
 # Choosing color map and reading data
 # =============================================================================
@@ -27,10 +29,10 @@ mask = fits.getdata("I_recor_mask.fits")
 box = data[int(Y_center)-10:int(Y_center )+10,int(X_center)-10:int(X_center)+10]
 norm_I = np.max(box)
 data = data/norm_I
-fig,ax = plt.subplots()
-mapi=plt.imshow((data*norm_I),cmap = cmap)
-plt.colorbar(mapi)
-plt.title("Datos")
+# fig,ax = plt.subplots()
+# mapi=plt.imshow((data*norm_I),cmap = cmap)
+# plt.colorbar(mapi)
+# plt.title("Datos")
 # =============================================================================
 # Generation of the PSF
 # =============================================================================
@@ -42,10 +44,10 @@ psf_class = psf(nx,ny,psf_imgname,gauss_amp,mean_x, mean_y, theta_rot,\
                 stdv_x,stdv_y,moff_amp,moff_x, moff_y,width_moff,power_moff)
 class_method = getattr(psf_class, psf_type)
 psf_image = class_method() 
-fig,ax = plt.subplots()
-mapi=plt.imshow((psf_image),cmap = cmap)
-plt.colorbar(mapi)
-plt.title("PSF_Moffat")
+# fig,ax = plt.subplots()
+# mapi=plt.imshow((psf_image),cmap = cmap)
+# plt.colorbar(mapi)
+# plt.title("PSF_Moffat")
 # =============================================================================
 # Application of the Hamiltorch
 # =============================================================================
@@ -53,7 +55,7 @@ plt.title("PSF_Moffat")
 #noise = np.sqrt(sky_sigm*npix+(readout_noise**2)*npix)/norm_I
 hamiltonian_class = hamiltonian_model(data.astype(np.float64),psf_image,mask,sky_sigm,readout_noise,gain,norm_I)
 class_method = getattr(hamiltonian_class, 'hamiltonian_sersic')
-params = class_method() 
+params,burn,step_size,L,N = class_method() 
 comprobar = params.detach().numpy()
 # =============================================================================
 #  Model print
@@ -68,17 +70,40 @@ model_method = model_class.Sersic(amp_sersic=params2[0],\
                                                   theta_sersic=params2[6])
 ma = model_method
 b =  hamiltonian_class.conv2d_fft_psf(ma)
-fig,ax = plt.subplots()
-mapi=plt.imshow( b.detach().numpy()*norm_I,cmap = cmap)
-plt.colorbar(mapi)
-plt.title("Modelo")
 
-fig, ax = pl.subplots(nrows=4, ncols=2, figsize=(10, 15))
-ax[0][0].hist(comprobar[:,0],label=r"$I_e$");ax[0][0].legend();ax[0][0].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
-ax[1][0].hist(comprobar[:,1],label=r"$R_e$");ax[1][0].legend();ax[1][0].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
-ax[2][0].hist(comprobar[:,2],label=r"$n$");ax[2][0].legend();ax[2][0].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
-ax[3][0].hist(comprobar[:,3],label=r"$x_0$");ax[3][0].legend();ax[3][0].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
-ax[0][1].hist(comprobar[:,4],label=r"$y_0$");ax[0][1].legend();ax[0][1].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
-ax[1][1].hist(comprobar[:,5],label=r"$\varepsilon$");ax[1][1].legend();ax[1][1].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
-ax[2][1].hist(comprobar[:,6],label=r"$\theta$");ax[2][1].legend();ax[2][1].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
-ax[3][1].imshow( b.detach().numpy()*norm_I,cmap = cmap)
+fig, ax = pl.subplots(nrows=1, ncols=2, figsize=(15, 15))
+mapi =ax[0].imshow((data*norm_I),cmap = cmap)
+fig.colorbar(mapi,ax=ax[0],extend='both')
+ax[0].set_title("Datos")
+mapi = ax[1].imshow( b.detach().numpy()*norm_I,cmap = cmap)
+fig.colorbar(mapi,ax=ax[1],extend='both')
+ax[1].set_title("Modelo")
+
+
+g = plots.get_subplot_plotter()
+g.settings.lab_fontsize = 14
+g.settings.axes_fontsize = 14
+g.settings.axis_tick_x_rotation=45
+g.settings.figure_legend_frame = False
+g.settings.alpha_filled_add=0.4
+g.settings.axis_tick_max_labels=3
+g.settings.title_limit_fontsize = 14
+g.settings.prob_y_ticks=True
+samples = MCSamples(samples=comprobar,names=['I0','Re','n','x0','y0','varepsilon','PA'],labels=['I_0', 'R_e','n','x_0','y_0',r'\varepsilon','PA'])
+g.triangle_plot([samples],
+    filled=True, 
+    line_args=[{'ls':'--', 'color':'green'},
+               {'lw':2, 'color':'darkblue'}], 
+    contour_colors=['darkblue'],
+    title_limit=1, # first title limit (for 1D plots) is 68% by default
+    markers={'x2':0})
+
+# fig, ax = pl.subplots(nrows=4, ncols=2, figsize=(10, 15))
+# ax[0][0].hist(comprobar[:,0],label=r"$I_e$");ax[0][0].legend();ax[0][0].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
+# ax[1][0].hist(comprobar[:,1],label=r"$R_e$");ax[1][0].legend();ax[1][0].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
+# ax[2][0].hist(comprobar[:,2],label=r"$n$");ax[2][0].legend();ax[2][0].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
+# ax[3][0].hist(comprobar[:,3],label=r"$x_0$");ax[3][0].legend();ax[3][0].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
+# ax[0][1].hist(comprobar[:,4],label=r"$y_0$");ax[0][1].legend();ax[0][1].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
+# ax[1][1].hist(comprobar[:,5],label=r"$\varepsilon$");ax[1][1].legend();ax[1][1].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
+# ax[2][1].hist(comprobar[:,6],label=r"$\theta$");ax[2][1].legend();ax[2][1].xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
+# ax[3][1].imshow( b.detach().numpy()*norm_I,cmap = cmap)

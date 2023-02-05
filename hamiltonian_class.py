@@ -69,8 +69,8 @@ class hamiltonian_model:
             a0,lodget0 = transform(pars[0],0,1)
             a1,lodget1 = transform(pars[1],0.001,400)
             a2,lodget2 = transform(pars[2],0.001,10)
-            a3,lodget3 = transform(pars[3],0,self.nx)
-            a4,lodget4 = transform(pars[4],0,self.ny)
+            a3,lodget3 = transform(pars[3],0,self.nx+1)
+            a4,lodget4 = transform(pars[4],0,self.ny+1)
             a5,lodget5 = transform(pars[5],0,0.999)
             a6,lodget6 = transform(pars[6],0,180)
 
@@ -175,7 +175,7 @@ class hamiltonian_model:
         params_nuts[:, 6],_ = transform(params_nuts[:, 6],0,180-1)
 
         #params_nuts = torch.cat(params_nuts[1:]).reshape(len(params_nuts[1:]),-1).numpy()
-        return(params_nuts)
+        return(params_nuts,burn,step_size,L,N)
     
     def hamiltonian_exponential(self):
         sigman = 1e-3
