@@ -151,7 +151,7 @@ class hamiltonian_model:
         
         paramis_init = torch.tensor(paramis,requires_grad=True)
         
-        burn = 500
+        burn = 5000
         step_size = 1e-36
         L =10
         N = 2000
