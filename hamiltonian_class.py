@@ -11,6 +11,7 @@ import hamiltorch
 import scipy.special as sp
 import torch.nn.functional as F
 from profile_select import *
+from priors import priors
 from tqdm import tqdm
 
 
@@ -22,7 +23,9 @@ def transform(param, a, b):
     logit_1 = 1.0 / (1.0+ torch.exp(-param))
     transformed = a + (b-a) * logit_1
     logdet = torch.log(torch.tensor((b-a))) + torch.log(logit_1) + torch.log((1.0 - logit_1))
-    return transformed, logdet
+    p=priors(A=a,B=b,N=1)
+    prior = torch.log(torch.tensor(p.Uprior()))
+    return transformed, logdet,prior
 
 def invtransform(param,a,b):
     return(sp.logit((param-a)/(b-a)))
@@ -66,13 +69,13 @@ class hamiltonian_model:
             # pars[5]=ellip
             # pars[6]=theta            
             
-            a0,lodget0 = transform(pars[0],0,1)
-            a1,lodget1 = transform(pars[1],0.001,400)
-            a2,lodget2 = transform(pars[2],0.001,10)
-            a3,lodget3 = transform(pars[3],0,self.nx+1)
-            a4,lodget4 = transform(pars[4],0,self.ny+1)
-            a5,lodget5 = transform(pars[5],0,0.999)
-            a6,lodget6 = transform(pars[6],0,180)
+            a0,lodget0,prior0 = transform(pars[0],0,1)
+            a1,lodget1,prior1 = transform(pars[1],0.001,400)
+            a2,lodget2,prior2 = transform(pars[2],0.001,10)
+            a3,lodget3,prior3 = transform(pars[3],0,self.nx+1)
+            a4,lodget4,prior4 = transform(pars[4],0,self.ny+1)
+            a5,lodget5,prior5 = transform(pars[5],0,0.999)
+            a6,lodget6,prior6 = transform(pars[6],0,180)
 
             if (self.model_type == 'Sersic'):
                 model_method = self.model_class.Sersic(amp_sersic=a0,r_eff_sersic=a1,\
@@ -85,7 +88,8 @@ class hamiltonian_model:
             #breakpoint() 
             noise = torch.sqrt((modelin*self.normfactor+self.sky_sigma*self.gain +self.read_noise**2 ))/np.sqrt(self.normfactor)
             logL = (-0.5 * torch.sum(((modelin[self.trues_i[:],self.trues_j[:]] - self.yt[self.trues_i[:],self.trues_j[:]])**2) / (noise[self.trues_i[:],self.trues_j[:]]**2)))+lodget0.sum()+lodget1.sum()\
-                +lodget2.sum()+lodget3.sum()+lodget4.sum()+lodget5.sum()+lodget6.sum()
+                +lodget2.sum()+lodget3.sum()+lodget4.sum()+lodget5.sum()+lodget6.sum()\
+                    #+prior0+prior1+prior2+prior3+prior4+prior5+prior6
            
             
             return logL
@@ -151,7 +155,7 @@ class hamiltonian_model:
         
         paramis_init = torch.tensor(paramis,requires_grad=True)
         
-        burn = 5000
+        burn = 500
         step_size = 1e-36
         L =10
         N = 2000
@@ -166,13 +170,13 @@ class hamiltonian_model:
                                         desired_accept_rate=0.8)
         params_nuts = torch.cat(params_nuts[1:]).reshape(len(params_nuts[1:]),-1)
 
-        params_nuts[:, 0],_ = transform(params_nuts[:, 0],0,1-1e-2)
-        params_nuts[:, 1],_ = transform(params_nuts[:, 1],0.001,400-1)
-        params_nuts[:, 2],_ = transform(params_nuts[:, 2],0.001,10+1e-1)
-        params_nuts[:, 3],_ = transform(params_nuts[:, 3],0,self.nx+1)
-        params_nuts[:, 4],_ = transform(params_nuts[:, 4],0,self.ny+1)
-        params_nuts[:, 5],_ = transform(params_nuts[:, 5],0,0.999-1e-2)
-        params_nuts[:, 6],_ = transform(params_nuts[:, 6],0,180-1)
+        params_nuts[:, 0],_,_ = transform(params_nuts[:, 0],0,1-1e-2)
+        params_nuts[:, 1],_,_ = transform(params_nuts[:, 1],0.001,400-1)
+        params_nuts[:, 2],_,_ = transform(params_nuts[:, 2],0.001,10+1e-1)
+        params_nuts[:, 3],_,_ = transform(params_nuts[:, 3],0,self.nx+1)
+        params_nuts[:, 4],_,_ = transform(params_nuts[:, 4],0,self.ny+1)
+        params_nuts[:, 5],_,_ = transform(params_nuts[:, 5],0,0.999-1e-2)
+        params_nuts[:, 6],_,_ = transform(params_nuts[:, 6],0,180-1)
 
         #params_nuts = torch.cat(params_nuts[1:]).reshape(len(params_nuts[1:]),-1).numpy()
         return(params_nuts,burn,step_size,L,N)
