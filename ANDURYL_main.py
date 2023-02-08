@@ -113,5 +113,5 @@ g.triangle_plot([samples],
     title_limit=1, # first title limit (for 1D plots) is 68% by default
     markers={'x2':0})
 plt.suptitle('Burn=%.0f ; Step=%.2e ; L=%.0f ; N=%.0f'%(burn,step_size,L,N), va='bottom',fontsize=14)
-plt.savefig('\Documentos\Master Astrofisica\TFM\ANDURYL\Figures'+ '\%s'%("figura_3"), bbox_inches='tight', pad_inches=0.02)
+plt.savefig('\Documentos\Master Astrofisica\TFM\ANDURYL\Figures'+ '\%s'%("figura_4"), bbox_inches='tight', pad_inches=0.02)
 

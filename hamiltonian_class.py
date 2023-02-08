@@ -78,7 +78,7 @@ class hamiltonian_model:
             a6,lodget6,prior6 = transform(pars[6],0,180)
 
             if (self.model_type == 'Sersic'):
-                model_method = self.model_class.Sersic(amp_sersic=a0,r_eff_sersic=a1,\
+                model_method = self.model_class.Sersic(amp_sersic=a0*self.normfactor,r_eff_sersic=a1,\
                                        n_sersic=a2,x0_sersic=a3,\
                                            y0_sersic=a4,\
                                                ellip_sersic=a5,\
@@ -90,8 +90,10 @@ class hamiltonian_model:
             logL = (-0.5 * torch.sum(((modelin[self.trues_i[:],self.trues_j[:]] - self.yt[self.trues_i[:],self.trues_j[:]])**2) / (noise[self.trues_i[:],self.trues_j[:]]**2)))+lodget0.sum()+lodget1.sum()\
                 +lodget2.sum()+lodget3.sum()+lodget4.sum()+lodget5.sum()+lodget6.sum()\
                     #+prior0+prior1+prior2+prior3+prior4+prior5+prior6
-           
             
+            N = np.shape(modelin[self.trues_i[:],self.trues_j[:]])[0]
+            chi_2 =(1/N)* torch.sum(((modelin[self.trues_i[:],self.trues_j[:]] - self.yt[self.trues_i[:],self.trues_j[:]])**2) / (noise[self.trues_i[:],self.trues_j[:]]**2))
+            print(r"$\chi^2$= %.3f"%(chi_2))
             return logL
 
         #########################################################
@@ -156,7 +158,7 @@ class hamiltonian_model:
         paramis_init = torch.tensor(paramis,requires_grad=True)
         
         burn = 500
-        step_size = 1e-36
+        step_size = 1
         L =10
         N = 2000
         N_nuts = burn + N
