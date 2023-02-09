@@ -93,7 +93,7 @@ class hamiltonian_model:
             
             N = np.shape(modelin[self.trues_i[:],self.trues_j[:]])[0]
             chi_2 =(1/N)* torch.sum(((modelin[self.trues_i[:],self.trues_j[:]] - self.yt[self.trues_i[:],self.trues_j[:]])**2) / (noise[self.trues_i[:],self.trues_j[:]]**2))
-            print(r"$\chi^2$= %.3f"%(chi_2))
+            print("chi^2= %.5f"%(chi_2))
             return logL
 
         #########################################################

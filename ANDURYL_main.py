@@ -55,7 +55,7 @@ class_method = getattr(hamiltonian_class, 'hamiltonian_sersic')
 params,burn,step_size,L,N = class_method() 
 comprobar = params.detach().numpy()
 # =============================================================================
-#  Model plot
+#  Model calculation
 # =============================================================================
 params2=torch.mean(params,axis=(0))
 model_class = profiles(x_size=data.shape[1],y_size=data.shape[0])
@@ -67,8 +67,12 @@ model_method = model_class.Sersic(amp_sersic=params2[0],\
                                                   theta_sersic=params2[6])
 ma = model_method
 b =  hamiltonian_class.conv2d_fft_psf(ma)
+# =============================================================================
+# Residual calculation and data-model-residual plot
+# =============================================================================
 
-fig, ax = pl.subplots(nrows=1, ncols=2, figsize=(15, 15))
+residual = b.detach().numpy()-data
+fig, ax = pl.subplots(nrows=1, ncols=3, figsize=(15, 15))
 mapi =ax[0].imshow((data*norm_I),cmap = cmap)
 cbar=fig.colorbar(mapi,ax=ax[0],shrink=0.5,extend='both')
 cbar.set_label(r"I [$e^{-}$]",loc = 'center',fontsize = 16)
@@ -77,6 +81,10 @@ mapi = ax[1].imshow( b.detach().numpy()*norm_I,cmap = cmap)
 cbar=fig.colorbar(mapi,ax=ax[1],shrink=0.5,extend='both')
 cbar.set_label(r"I [$e^{-}$]",loc = 'center',fontsize = 16)
 ax[1].set_title("Model")
+mapi = ax[2].imshow(residual*norm_I,cmap = cmap)
+cbar=fig.colorbar(mapi,ax=ax[2],shrink=0.5,extend='both')
+cbar.set_label(r"I [$e^{-}$]",loc = 'center',fontsize = 16)
+ax[2].set_title("Residual map")
 plt.tick_params(axis="x", direction="in", length=7, width=1.2, color="k")
 plt.tick_params(axis="y", direction="in", length=7, width=1.2, color="k")
 ax[0].set_ylabel(r'y [px]', fontsize = 16)
@@ -89,6 +97,11 @@ ax[1].set_xlabel(r'x [px]', fontsize =16)
 ax[1].xaxis.set_minor_locator(AutoMinorLocator())
 ax[1].yaxis.set_minor_locator(AutoMinorLocator())
 ax[1].tick_params(direction="in",which='minor', length=4, color='k')
+ax[2].set_ylabel(r'y [px]', fontsize = 16)
+ax[2].set_xlabel(r'x [px]', fontsize =16)
+ax[2].xaxis.set_minor_locator(AutoMinorLocator())
+ax[2].yaxis.set_minor_locator(AutoMinorLocator())
+ax[2].tick_params(direction="in",which='minor', length=4, color='k')
 
 # =============================================================================
 #  Triangular plot
@@ -113,5 +126,5 @@ g.triangle_plot([samples],
     title_limit=1, # first title limit (for 1D plots) is 68% by default
     markers={'x2':0})
 plt.suptitle('Burn=%.0f ; Step=%.2e ; L=%.0f ; N=%.0f'%(burn,step_size,L,N), va='bottom',fontsize=14)
-plt.savefig('\Documentos\Master Astrofisica\TFM\ANDURYL\Figures'+ '\%s'%("figura_4"), bbox_inches='tight', pad_inches=0.02)
+plt.savefig('\Documentos\Master Astrofisica\TFM\ANDURYL\Figures'+ '\%s'%("figura_5"), bbox_inches='tight', pad_inches=0.02)
 
