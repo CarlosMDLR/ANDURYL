@@ -9,12 +9,10 @@ import numpy as np
 from profiles_torch import Sersic2D,Exponential2D,Ferrers2D
 import matplotlib.pyplot as plt
 class profiles:
-    def __init__(self,x_size=100,y_size=100):
-        #,amp_sersic=1, r_eff_sersic=25, n_sersic=1, x0_sersic=50,y0_sersic=50, ellip_sersic=.5, theta_sersic=20, \
-        #        amp_exp=1,h_exp=20,x0_exp=50,y0_exp=50,ellip_exp=.5,theta_exp=20,\
-        #            amp_ferrers=1, a_bar_ferrers=5, n_bar_ferrers=3, x0_ferrers=50,y0_ferrers=50, ellip_ferrers=.5, theta_ferrers=20):
+    def __init__(self,x_size=100,y_size=100,rebin_size=3):
         self.x_size = x_size
         self.y_size = y_size
+        self.rebin_size=rebin_size
         #Sersic params
         # self.amp_sersic = amp_sersic
         # self.r_eff_sersic= r_eff_sersic
@@ -38,12 +36,16 @@ class profiles:
         # self.y0_ferrers=y0_ferrers
         # self.ellip_ferrers=ellip_ferrers
         # self.theta_ferrers=theta_ferrers
-
+        
         self.y, self.x = torch.meshgrid(torch.arange(int(self.y_size)), torch.arange(int(self.x_size)))
+
+        #self.y, self.x = torch.meshgrid(torch.arange(int(self.y_size*self.rebin_size)), torch.arange(int(self.x_size*self.rebin_size)))
 
     def Sersic(self, amp_sersic=1, r_eff_sersic=25, n_sersic=1, x0_sersic=50,y0_sersic=50, ellip_sersic=.5, theta_sersic=20):        
         model = Sersic2D(x=self.x,y=self.y,amplitude = amp_sersic, r_eff =r_eff_sersic, n= n_sersic, x_0= x0_sersic, y_0= y0_sersic,
                ellip=ellip_sersic, theta=theta_sersic)
+        #b = model().reshape((self.y_size,int(self.rebin_size),self.x_size,int(self.rebin_size))).mean(3).mean(1)
+        #breakpoint()
         return(model())
     def Exponential(self):
         x,y = torch.meshgrid(torch.arange(int(self.x_size)), torch.arange(int(self.y_size)))

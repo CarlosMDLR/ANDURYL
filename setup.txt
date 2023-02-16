@@ -68,7 +68,7 @@
 # COMPONENTS TO FIT		   
 #===============================================================================================
 #
-	2Dfit.dat		  #|User input file (Indicate on file the order of the columns)
+	./for_TEST/2Dfit.dat		  #|User input file (Indicate on file the order of the columns)
 	1-0-3			  #|Syncronised component centres 
 	0-0-0			  #|Sky background 
 #

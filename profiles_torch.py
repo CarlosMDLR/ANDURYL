@@ -14,6 +14,16 @@ from astropy.modeling.parameters import InputParameterError, Parameter
 from astropy.modeling.utils import ellipse_extent
 from scipy.special import gammaincinv
 
+def sersic(n,theta,r_eff,ellip,x,x_0,y,y_0,amplitude):
+        bn = (2.0*n) - torch.tensor(0.327)
+        theta = theta*np.pi/180
+        a, b = r_eff, (1-ellip) * r_eff
+        cos_theta, sin_theta = torch.cos(theta), torch.sin(theta)
+        x_min = -(x - x_0) * sin_theta + (y - y_0) * cos_theta
+        x_maj = -(x - x_0) * cos_theta - (y - y_0) * sin_theta
+
+        z = torch.sqrt(((x_min / a)**2) + ((x_maj/b)**2))
+        return(amplitude * torch.exp(-bn*(((z**(1/n))) - 1)))
 # =============================================================================
 class Sersic2D:
     def __init__(self,x,y,amplitude,r_eff,n,x_0,y_0,ellip,theta):
@@ -74,17 +84,63 @@ class Sersic2D:
     def __call__(self):
         """Two dimensional Sersic profile function."""
  
-        bn = (2.0*self.n) - torch.tensor(0.327)
-        theta = self.theta*np.pi/180
-        a, b = self.r_eff, (1-self.ellip) * self.r_eff
-        cos_theta, sin_theta = torch.cos(theta), torch.sin(theta)
-        x_min = -(self.x - self.x_0) * sin_theta + (self.y - self.y_0) * cos_theta
-        x_maj = -(self.x - self.x_0) * cos_theta - (self.y - self.y_0) * sin_theta
+        map_ser = sersic(self.n, self.theta, self.r_eff, self.ellip, self.x, self.x_0, self.y, self.y_0, self.amplitude)
+        
+        # =============================================================================
+        #  Center oversampling
+        # =============================================================================   
 
-        z = torch.sqrt(((x_min / a)**2) + ((x_maj/b)**2))
-
-        return (self.amplitude * torch.exp(-bn*(((z**(1/self.n))) - 1)))
+        try:
+            M=150; N = 150
+            l_size =15
+            y_new, x_new = torch.meshgrid(torch.linspace(int(self.y_0-l_size),int(self.y_0+l_size),M), torch.linspace(int(self.x_0-l_size),int(self.x_0+l_size),N))
+        except ValueError:
+            print("Oversampling: no")
+            return(map_ser)
+        else:
+            m, n = map_ser[int(self.y_0-l_size):int(self.y_0+l_size),int(self.x_0-l_size):int(self.x_0+l_size)].shape
+            if m!=0 and n!=0 and m==n:
+                map_ser_new = sersic(self.n, self.theta, self.r_eff, self.ellip, x_new, self.x_0, y_new, self.y_0, self.amplitude)
+                new=map_ser_new.reshape((m,int(M/m),n,int(N/n))).mean(3).mean(1)
+               
+                map_ser[int(self.y_0-l_size):int(self.y_0+l_size),int(self.x_0-l_size):int(self.x_0+l_size)]=new
+                print("Oversampling: yes")
+            else:
+                map_ser=map_ser
+                print("Oversampling: no")
+        return(map_ser)
     
+# =============================================================================
+# Nofunciona
+# =============================================================================
+        # try:
+        #     M=10000; N = 10000
+        #     l_size =5
+        #     ylsize = float((self.y_0-l_size).detach().numpy())
+        #     yrsize = float((self.y_0+l_size).detach().numpy())
+        #     xlsize = float((self.x_0-l_size).detach().numpy())
+        #     xrsize = float((self.x_0+l_size).detach().numpy())
+        #     y_new = torch.linspace(ylsize,yrsize,M)
+        #     x_new = torch.linspace(xlsize,xrsize,N)
+
+        # except ValueError:
+        #     print("Oversampling: no")
+        #     return(map_ser)
+        # else: 
+        #     try:
+        #         map_ser_new = sersic(self.n, self.theta, self.r_eff, self.ellip, x_new, self.x_0, y_new, self.y_0, self.amplitude)
+        #         map_ser_new.reshape(shape=(100,100))
+            
+        #         new=map_ser_new.reshape((2*l_size,10,2*l_size,10)).mean(3).mean(1)
+               
+        #         map_ser[int(self.y_0-l_size):int(self.y_0+l_size),int(self.x_0-l_size):int(self.x_0+l_size)]=new
+        #         print("Oversampling: yes")
+        #     except RuntimeError:
+        #         print("Oversampling: no")
+        #         return(map_ser)
+        #     except ValueError:
+        #         print("Oversampling: no")
+        #         return(map_ser)
 # =============================================================================
 class Exponential2D:
     r"""

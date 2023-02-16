@@ -17,16 +17,20 @@ from astropy.convolution import convolve
 from matplotlib.ticker import FormatStrFormatter
 from getdist import plots, gaussian_mixtures,MCSamples
 from matplotlib.ticker import (MultipleLocator, AutoMinorLocator)
+from time import time
 
+# Start counting
+start_time = time()
 # =============================================================================
 # Choosing color map and reading data
 # =============================================================================
+ruta = './for_TEST/'
 cmap = plt.get_cmap('cmr.redshift')
 galaxies,Ie,Re,n, ba_b, PA_bulge, B_T, X_center, Y_center, chi_2= \
     data_reader(user_in_file)
 
-data=fits.getdata(galaxies[0])*gain
-mask = fits.getdata("I_recor_mask.fits")
+data=fits.getdata(ruta+galaxies[0])*gain
+mask = fits.getdata(ruta+"I_recor_mask.fits")
 box = data[int(Y_center)-10:int(Y_center )+10,int(X_center)-10:int(X_center)+10]
 norm_I = np.max(box)
 data = data/norm_I
@@ -81,7 +85,7 @@ mapi = ax[1].imshow( b.detach().numpy()*norm_I,cmap = cmap)
 cbar=fig.colorbar(mapi,ax=ax[1],shrink=0.5,extend='both')
 cbar.set_label(r"I [$e^{-}$]",loc = 'center',fontsize = 16)
 ax[1].set_title("Model")
-mapi = ax[2].imshow(residual*norm_I,cmap = cmap)
+mapi = ax[2].imshow(residual*norm_I,vmin=-5000,vmax=3000,cmap = cmap)
 cbar=fig.colorbar(mapi,ax=ax[2],shrink=0.5,extend='both')
 cbar.set_label(r"I [$e^{-}$]",loc = 'center',fontsize = 16)
 ax[2].set_title("Residual map")
@@ -126,5 +130,8 @@ g.triangle_plot([samples],
     title_limit=1, # first title limit (for 1D plots) is 68% by default
     markers={'x2':0})
 plt.suptitle('Burn=%.0f ; Step=%.2e ; L=%.0f ; N=%.0f'%(burn,step_size,L,N), va='bottom',fontsize=14)
-plt.savefig('\Documentos\Master Astrofisica\TFM\ANDURYL\Figures'+ '\%s'%("figura_7"), bbox_inches='tight', pad_inches=0.02)
+plt.savefig('\Documentos\Master Astrofisica\TFM\ANDURYL\Figures'+ '\%s'%("figura_new_over"), bbox_inches='tight', pad_inches=0.02)
 
+# Calculate the elapsed time
+elapsed_time = time() - start_time
+print("Elapsed time: %0.10f seconds." % elapsed_time)
