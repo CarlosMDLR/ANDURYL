@@ -1,0 +1,142 @@
+X coordinate of the center
+0
+Y coordinate of the center
+0
+Do you prefer FFT -> 0 or integrals -> 1 to perform the convolution
+0
+If you want a Gaussian PSF -> 0 if prefer a Moffat PSF -> 1
+1
+PSF image name
+none
+If you are select a Moffat function, enter the beta parameter,if not -> 0
+4.03
+Seeing FWHM (in pixels)
+2.89
+Readout noise(e-)
+5.76
+Gain(e-/ADU)
+6.565
+sky values (counts)
+161.932877
+Sky sigma (counts)
+6.0
+Initial Guesses (Automatic -> 0, Manual -> 1, File -> 2)
+2
+IF Initial Guesses -> 2 indicate the file name (i.e., ../2Dfit.fits)
+../R_BAND/2Dfit.fits
+Fit the bulge (0 -> no,1 -> yes)
+1
+Fit the disk (0 -> no,1 -> yes)
+0
+Fit a broken exponential profile (0 -> no, 1 -> yes)
+0
+Fit the bar (0 -> no,1 -> yes)
+0
+Select the model for the bar (0 -> Ferrers, 1 -> Flat, 2 -> Elliptical)
+0
+Fit a secondary bar (0 -> no,1 -> yes)
+0
+Select the model for the secondary bar (0 -> Ferrers, 1 -> Flat, 2 -> Elliptical)
+0
+Fit Nuclear Source (0 -> no,1 -> yes)
+0
+Fit DeVaucouleurs (0 -> no, 1 -> yes) IF SET ALL PARAMETERS ARE IGNORED
+0
+Fit King profile  (0 -> no,1 -> yes)
+0
+Do you want to use an automatical -> 0 or fixed -> 1 maximum fittind radius
+0
+Maximum fitting radius
+60
+Number of sigmas over the sky RMS for the automatical radius
+0.5
+Flag image mask
+0
+image mask name
+none
+Flag image weight
+0
+image weight name
+none
+Bulge effective intensity(0 -> fixed  1 -> variable)
+1
+Bulge effective radius   (0 -> fixed  1 -> variable)        
+1
+Bulge Sersic parameter n (0 -> fixed  1 -> variable)
+1
+Bulge ellipticity        (0 -> fixed  1 -> variable)      
+1
+Bulge PA                 (0 -> fixed  1 -> variable)
+1
+Disk central intensity   (0 -> fixed  1 -> variable)
+1
+Disk scale length        (0 -> fixed  1 -> variable)    
+1
+Disk ellipticity         (0 -> fixed  1 -> variable)
+1
+Disk PA                  (0 -> fixed  1 -> variable)
+1
+Disk scale length outer  (0 -> fixed  1 -> variable)
+1
+Disk break radius	 (0 -> fixed  1 -> variable)
+1
+Bar central intensity    (0 -> fixed  1 -> variable)
+1
+Bar lenght               (0 -> fixed  1 -> variable)
+1
+Bar scale length - Only for the Flat profile - (0 -> fixed  1 -> variable)
+0
+Bar shape parameter - Only for the Ferrers profile - (0 -> fixed  1 -> variable)
+0
+Bar ellipticity          (0 -> fixed  1 -> variable)
+1
+Bar PA                   (0 -> fixed  1 -> variable)
+1
+Bar generalized ellipse shape parameter C   (0 -> fixed  1 -> variable)
+0
+Bar 2 central intensity    (0 -> fixed  1 -> variable)
+1
+Bar 2 lenght               (0 -> fixed  1 -> variable)
+1
+Bar 2 scale length - Only for the Flat profile - (0 -> fixed  1 -> variable)
+0
+Bar 2 shape parameter - Only for the Ferrers profile - (0 -> fixed  1 -> variable)
+0
+Bar 2 ellipticity          (0 -> fixed  1 -> variable)
+1
+Bar 2 PA                   (0 -> fixed  1 -> variable)
+1
+Bar 2 generalized ellipse shape parameter C   (0 -> fixed  1 -> variable)
+0
+Central PSF intensity    (0 -> fixed  1 -> variable)
+1
+King central intensity (0 -> fixed  1 -> variable)
+1
+King core radius (0 -> fixed  1 -> variable)
+1
+King tidal radius (0 -> fixed  1 -> variable)
+1
+King ellipticity (0 -> fixed  1 -> variable)
+1
+King PA (0 -> fixed  1 -> variable)
+1
+galaxy  X  center        (0 -> fixed  1 -> variable)
+1
+galaxy Y center          (0 -> fixed  1 -> variable)
+1
+threshold level (in mag)
+100.
+Do you want weight the fit points? (0 -> Poisson 1-> Constant)
+0
+Do you want an automatical mask to do the ellipse fitting? (0 -> yes   1 -> no)
+1
+Do you want to use this mask also in the 2D fit?(0 -> no   1 -> yes)
+1
+Do you want to run ellipse? (0 -> no    1 -> yes)
+0
+Do you want to run the ellipse fitting automatical?  (0 -> no   1 -> yes )
+1
+Do you want to simetrize the images before the fit? (0 -> no   1 -> yes)
+0
+Do you want to perform ellipse fitting on the model images? (0 -> no   1 -> yes)
+1
