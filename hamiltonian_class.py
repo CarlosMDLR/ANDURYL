@@ -84,9 +84,9 @@ class hamiltonian_model:
                                                ellip_sersic=a5,\
                                                    theta_sersic=a6)
             # modelin= conv2d_pyt(model_method, self.psf_mod)
-            breakpoint()
+            
             modelin= self.conv2d_fft_psf(model_method)/self.normfactor
-            #breakpoint() 
+             
             noise = torch.sqrt((modelin*self.normfactor+self.sky_sigma*self.gain +self.read_noise**2 ))/np.sqrt(self.normfactor)
             logL = (-0.5 * torch.sum(((modelin[self.trues_i[:],self.trues_j[:]] - self.yt[self.trues_i[:],self.trues_j[:]])**2) / (noise[self.trues_i[:],self.trues_j[:]]**2)))+lodget0.sum()+lodget1.sum()\
                 +lodget2.sum()+lodget3.sum()+lodget4.sum()+lodget5.sum()+lodget6.sum()\

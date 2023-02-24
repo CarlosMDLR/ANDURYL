@@ -30,9 +30,9 @@ galaxies,Ie,Re,n, ba_b, PA_bulge, B_T, X_center, Y_center, chi_2= \
     data_reader(user_in_file)
 
 data=fits.getdata(ruta+galaxies[0])*gain
-data = data[:,:]
+data = data[:,38:376-37]
 mask = fits.getdata(ruta+"I_recor_mask.fits")
-mask=mask[:,:]
+mask=mask[:,38:376-37]
 box = data[int(Y_center)-10:int(Y_center )+10,int(X_center)-10:int(X_center)+10]
 norm_I = np.max(box)
 data = data/norm_I
@@ -171,54 +171,7 @@ elapsed_time = time() - start_time
 print("Elapsed time: %0.10f seconds." % elapsed_time)
 
 # =============================================================================
-# Pruebas
-# =============================================================================
-# paramis = np.array([24.5104490606881136*gain,80.0539328733860458,5.1032339340992072,182.67604,154.94841,1- 0.7658242620261781,84.6835058750300078])
-# params2=torch.tensor(paramis)
-# model_class = profiles(x_size=data.shape[1],y_size=data.shape[0])
-# model_method = model_class.Sersic(amp_sersic=params2[0],\
-#                                   r_eff_sersic=params2[1], n_sersic=params2[2]\
-#                                       ,x0_sersic=params2[3], \
-#                                           y0_sersic=params2[4],\
-#                                               ellip_sersic=params2[5], \
-#                                                   theta_sersic=params2[6])
-# ma = model_method
-# b =  (hamiltonian_class.conv2d_fft_psf(ma))/norm_I
-
-# residual = b.detach().numpy()-data
-# fig, ax = plt.subplots(nrows=1, ncols=3, figsize=(15, 15))
-# mapi =ax[0].imshow((data*norm_I),cmap = cmap)
-# cbar=fig.colorbar(mapi,ax=ax[0],shrink=0.5,extend='both')
-# cbar.set_label(r"I [$e^{-}$]",loc = 'center',fontsize = 16)
-# ax[0].set_title("Data")
-# mapi = ax[1].imshow( b.detach().numpy()*norm_I,cmap = cmap)
-# cbar=fig.colorbar(mapi,ax=ax[1],shrink=0.5,extend='both')
-# cbar.set_label(r"I [$e^{-}$]",loc = 'center',fontsize = 16)
-# ax[1].set_title("Model")
-# mapi = ax[2].imshow(residual*norm_I,vmin=-5000,vmax=3000,cmap = cmap)
-# cbar=fig.colorbar(mapi,ax=ax[2],shrink=0.5,extend='both')
-# cbar.set_label(r"I [$e^{-}$]",loc = 'center',fontsize = 16)
-# ax[2].set_title("Residual map")
-# plt.tick_params(axis="x", direction="in", length=7, width=1.2, color="k")
-# plt.tick_params(axis="y", direction="in", length=7, width=1.2, color="k")
-# ax[0].set_ylabel(r'y [px]', fontsize = 16)
-# ax[0].set_xlabel(r'x [px]', fontsize =16)
-# ax[0].xaxis.set_minor_locator(AutoMinorLocator())
-# ax[0].yaxis.set_minor_locator(AutoMinorLocator())
-# ax[0].tick_params(direction="in",which='minor', length=4, color='k')
-# ax[1].set_ylabel(r'y [px]', fontsize = 16)
-# ax[1].set_xlabel(r'x [px]', fontsize =16)
-# ax[1].xaxis.set_minor_locator(AutoMinorLocator())
-# ax[1].yaxis.set_minor_locator(AutoMinorLocator())
-# ax[1].tick_params(direction="in",which='minor', length=4, color='k')
-# ax[2].set_ylabel(r'y [px]', fontsize = 16)
-# ax[2].set_xlabel(r'x [px]', fontsize =16)
-# ax[2].xaxis.set_minor_locator(AutoMinorLocator())
-# ax[2].yaxis.set_minor_locator(AutoMinorLocator())
-# ax[2].tick_params(direction="in",which='minor', length=4, color='k')
-
-# =============================================================================
-# Prueba PSF simetrica
+# Prueba PSF simetrica sin torch
 # =============================================================================
 # def sersic(n,theta,r_eff,ellip,x,x_0,y,y_0,amplitude):
 #         bn = (2.0*n) - (0.327)
@@ -250,6 +203,53 @@ print("Elapsed time: %0.10f seconds." % elapsed_time)
 # cbar.set_label(r"I [$e^{-}$]",loc = 'center',fontsize = 16)
 # ax[1].set_title("Model+Conv")
 # mapi = ax[2].imshow(residual,vmin=-1000,cmap = cmap)
+# cbar=fig.colorbar(mapi,ax=ax[2],shrink=0.5,extend='both')
+# cbar.set_label(r"I [$e^{-}$]",loc = 'center',fontsize = 16)
+# ax[2].set_title("Residual map")
+# plt.tick_params(axis="x", direction="in", length=7, width=1.2, color="k")
+# plt.tick_params(axis="y", direction="in", length=7, width=1.2, color="k")
+# ax[0].set_ylabel(r'y [px]', fontsize = 16)
+# ax[0].set_xlabel(r'x [px]', fontsize =16)
+# ax[0].xaxis.set_minor_locator(AutoMinorLocator())
+# ax[0].yaxis.set_minor_locator(AutoMinorLocator())
+# ax[0].tick_params(direction="in",which='minor', length=4, color='k')
+# ax[1].set_ylabel(r'y [px]', fontsize = 16)
+# ax[1].set_xlabel(r'x [px]', fontsize =16)
+# ax[1].xaxis.set_minor_locator(AutoMinorLocator())
+# ax[1].yaxis.set_minor_locator(AutoMinorLocator())
+# ax[1].tick_params(direction="in",which='minor', length=4, color='k')
+# ax[2].set_ylabel(r'y [px]', fontsize = 16)
+# ax[2].set_xlabel(r'x [px]', fontsize =16)
+# ax[2].xaxis.set_minor_locator(AutoMinorLocator())
+# ax[2].yaxis.set_minor_locator(AutoMinorLocator())
+# ax[2].tick_params(direction="in",which='minor', length=4, color='k')
+
+# =============================================================================
+# Prueba PSF simetrica con torch
+# =============================================================================
+# paramis = np.array([24.5104490606881136*gain,80.0539328733860458,5.1032339340992072,100.1,100.1,1- 0.7658242620261781,84.6835058750300078])
+# params2=torch.tensor(paramis)
+# model_class = profiles(x_size=data.shape[1],y_size=data.shape[0])
+# model_method = model_class.Sersic(amp_sersic=params2[0],\
+#                                   r_eff_sersic=params2[1], n_sersic=params2[2]\
+#                                       ,x0_sersic=params2[3], \
+#                                           y0_sersic=params2[4],\
+#                                               ellip_sersic=params2[5], \
+#                                                   theta_sersic=params2[6])
+# ma = model_method
+# b =  (hamiltonian_class.conv2d_fft_psf(ma))
+
+# residual = b.detach().numpy()-ma.detach().numpy()
+# fig, ax = plt.subplots(nrows=1, ncols=3, figsize=(15, 15))
+# mapi =ax[0].imshow((ma.detach().numpy()),cmap = cmap)
+# cbar=fig.colorbar(mapi,ax=ax[0],shrink=0.5,extend='both')
+# cbar.set_label(r"I [$e^{-}$]",loc = 'center',fontsize = 16)
+# ax[0].set_title("Model")
+# mapi = ax[1].imshow( b.detach().numpy(),cmap = cmap)
+# cbar=fig.colorbar(mapi,ax=ax[1],shrink=0.5,extend='both')
+# cbar.set_label(r"I [$e^{-}$]",loc = 'center',fontsize = 16)
+# ax[1].set_title("Model + Conv")
+# mapi = ax[2].imshow(residual,vmin=-2000,cmap = cmap)
 # cbar=fig.colorbar(mapi,ax=ax[2],shrink=0.5,extend='both')
 # cbar.set_label(r"I [$e^{-}$]",loc = 'center',fontsize = 16)
 # ax[2].set_title("Residual map")
