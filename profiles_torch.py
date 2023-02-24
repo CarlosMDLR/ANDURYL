@@ -90,24 +90,36 @@ class Sersic2D:
         #  Center oversampling
         # =============================================================================   
 
-        try:
-            M=150; N = 150
-            l_size =15
-            y_new, x_new = torch.meshgrid(torch.linspace(int(self.y_0-l_size),int(self.y_0+l_size),M), torch.linspace(int(self.x_0-l_size),int(self.x_0+l_size),N))
-        except ValueError:
-            print("Oversampling: no")
-            return(map_ser)
-        else:
-            m, n = map_ser[int(self.y_0-l_size):int(self.y_0+l_size),int(self.x_0-l_size):int(self.x_0+l_size)].shape
-            if m!=0 and n!=0 and m==n:
-                map_ser_new = sersic(self.n, self.theta, self.r_eff, self.ellip, x_new, self.x_0, y_new, self.y_0, self.amplitude)
-                new=map_ser_new.reshape((m,int(M/m),n,int(N/n))).mean(3).mean(1)
+        # try:
+        #     M=150; N = 150
+        #     l_size =5
+        #     y_new, x_new =torch.meshgrid(\
+        #     torch.linspace(int(torch.round(self.y_0)-l_size),\
+        #                     int(torch.round(self.y_0)+l_size),M),\
+        #     torch.linspace(int(torch.round(self.x_0)-l_size),\
+        #                     int(torch.round(self.x_0)+l_size),N))
+        # except ValueError:
+        #     print("Oversampling: no")
+        #     return(map_ser)
+        # else:
+        #     m, n = map_ser[\
+        #     int(torch.round(self.y_0)-l_size):int(torch.round(self.y_0)+l_size)\
+        #     ,int(torch.round(self.x_0)-l_size):int(torch.round(self.x_0)+l_size)].shape
+        #     if m!=0 and n!=0 and m==n:
+        #         map_ser_new = sersic(self.n, self.theta, self.r_eff,\
+        #                               self.ellip, x_new, self.x_0, y_new,\
+        #                               self.y_0, self.amplitude)
+        #         new=map_ser_new.reshape((m,int(M/m),n,int(N/n))).mean(3).mean(1)
                
-                map_ser[int(self.y_0-l_size):int(self.y_0+l_size),int(self.x_0-l_size):int(self.x_0+l_size)]=new
-                print("Oversampling: yes")
-            else:
-                map_ser=map_ser
-                print("Oversampling: no")
+        #         map_ser[\
+        #         int(torch.round(self.y_0)-l_size):int(torch.round(self.y_0)\
+        #                                               +l_size),\
+        #         int(torch.round(self.x_0)-l_size):int(torch.round(self.x_0)\
+        #                                               +l_size)]=new
+        #         print("Oversampling: yes")
+        #     else:
+        #         map_ser=map_ser
+        #         print("Oversampling: no")
         return(map_ser)
     
 # =============================================================================

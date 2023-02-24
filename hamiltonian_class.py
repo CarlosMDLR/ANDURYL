@@ -72,8 +72,8 @@ class hamiltonian_model:
             a0,lodget0,prior0 = transform(pars[0],0,1)
             a1,lodget1,prior1 = transform(pars[1],0.001,400)
             a2,lodget2,prior2 = transform(pars[2],0.001,10)
-            a3,lodget3,prior3 = transform(pars[3],0,self.nx+1)
-            a4,lodget4,prior4 = transform(pars[4],0,self.ny+1)
+            a3,lodget3,prior3 = transform(pars[3],50,self.nx-50)
+            a4,lodget4,prior4 = transform(pars[4],50,self.ny-50)
             a5,lodget5,prior5 = transform(pars[5],0,0.999)
             a6,lodget6,prior6 = transform(pars[6],0,180)
 
@@ -84,6 +84,7 @@ class hamiltonian_model:
                                                ellip_sersic=a5,\
                                                    theta_sersic=a6)
             # modelin= conv2d_pyt(model_method, self.psf_mod)
+            breakpoint()
             modelin= self.conv2d_fft_psf(model_method)/self.normfactor
             #breakpoint() 
             noise = torch.sqrt((modelin*self.normfactor+self.sky_sigma*self.gain +self.read_noise**2 ))/np.sqrt(self.normfactor)
@@ -143,17 +144,17 @@ class hamiltonian_model:
         #########################################################
 
         #hamiltorch.set_random_seed(123)        
-        #paramis = np.array([24.51/3922.3203,80/0.396,5.10,154.94841,182.67604,1- 0.7658242620261781,84.6835058750300078])
+        #paramis = np.array([24.51/3922.3203,80/0.396,5.10,182.67604,154.94841,1- 0.7658242620261781,84.6835058750300078])
         paramis = np.array([0.3,100,0.5,120,110,0.4,30])
         #paramis = np.array([0.1,1,1,1,1,0.1,0.1])
         
-        paramis[0] = invtransform(paramis[0],0,1-1e-2)
-        paramis[1] = invtransform(paramis[1],0.001,400-1)
-        paramis[2] = invtransform(paramis[2],0.001,10-1e-1)
-        paramis[3] = invtransform(paramis[3],0,self.nx+1)
-        paramis[4] = invtransform(paramis[4],0,self.ny+1)
-        paramis[5] = invtransform(paramis[5],0,0.999-1e-2)
-        paramis[6] = invtransform(paramis[6],0,180-1)
+        paramis[0] = invtransform(paramis[0],0,1)
+        paramis[1] = invtransform(paramis[1],0.001,400)
+        paramis[2] = invtransform(paramis[2],0.001,10)
+        paramis[3] = invtransform(paramis[3],50,self.nx-50)
+        paramis[4] = invtransform(paramis[4],50,self.ny-50)
+        paramis[5] = invtransform(paramis[5],0,0.999)
+        paramis[6] = invtransform(paramis[6],0,180)
         
         paramis_init = torch.tensor(paramis,requires_grad=True)
         
@@ -172,13 +173,13 @@ class hamiltonian_model:
                                         desired_accept_rate=0.8)
         params_nuts = torch.cat(params_nuts[1:]).reshape(len(params_nuts[1:]),-1)
 
-        params_nuts[:, 0],_,_ = transform(params_nuts[:, 0],0,1-1e-2)
-        params_nuts[:, 1],_,_ = transform(params_nuts[:, 1],0.001,400-1)
-        params_nuts[:, 2],_,_ = transform(params_nuts[:, 2],0.001,10+1e-1)
-        params_nuts[:, 3],_,_ = transform(params_nuts[:, 3],0,self.nx+1)
-        params_nuts[:, 4],_,_ = transform(params_nuts[:, 4],0,self.ny+1)
-        params_nuts[:, 5],_,_ = transform(params_nuts[:, 5],0,0.999-1e-2)
-        params_nuts[:, 6],_,_ = transform(params_nuts[:, 6],0,180-1)
+        params_nuts[:, 0],_,_ = transform(params_nuts[:, 0],0,1)
+        params_nuts[:, 1],_,_ = transform(params_nuts[:, 1],0.001,400)
+        params_nuts[:, 2],_,_ = transform(params_nuts[:, 2],0.001,10)
+        params_nuts[:, 3],_,_ = transform(params_nuts[:, 3],50,self.nx-50)
+        params_nuts[:, 4],_,_ = transform(params_nuts[:, 4],50,self.ny-50)
+        params_nuts[:, 5],_,_ = transform(params_nuts[:, 5],0,0.999)
+        params_nuts[:, 6],_,_ = transform(params_nuts[:, 6],0,180)
 
         #params_nuts = torch.cat(params_nuts[1:]).reshape(len(params_nuts[1:]),-1).numpy()
         return(params_nuts,burn,step_size,L,N)
