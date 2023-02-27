@@ -47,8 +47,10 @@ class hamiltonian_model:
 
         self.model_type = model_type
         
-        self.psf_mod = torch.tensor(self.psf)
-        self.psf_fft = torch.fft.fft2(self.psf_mod)
+        self.sz = (self.image.shape[0] - self.psf.shape[0], self.image.shape[1] - self.psf.shape[1])
+        self.kernel = np.pad(self.psf, (((self.sz[0]+1)//2, self.sz[0]//2), ((self.sz[1]+1)//2, self.sz[1]//2)))
+        self.psf_mod = torch.tensor(self.kernel)
+        self.psf_fft = torch.fft.fft2( torch.fft.ifftshift(self.psf_mod))
         
         self.yt = torch.tensor(self.image)
 
@@ -56,7 +58,7 @@ class hamiltonian_model:
 
     def conv2d_fft_psf(self, f):
         ff = torch.fft.fft2(f)
-        return torch.fft.fftshift(torch.fft.ifft2(ff * self.psf_fft)).real
+        return (torch.fft.ifft2(ff * self.psf_fft)).real
 
     def hamiltonian_sersic(self):
         
@@ -158,7 +160,7 @@ class hamiltonian_model:
         
         paramis_init = torch.tensor(paramis,requires_grad=True)
         
-        burn = 500
+        burn = 1000
         step_size = 1
         L =10
         N = 1000

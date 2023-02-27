@@ -30,9 +30,9 @@ galaxies,Ie,Re,n, ba_b, PA_bulge, B_T, X_center, Y_center, chi_2= \
     data_reader(user_in_file)
 
 data=fits.getdata(ruta+galaxies[0])*gain
-data = data[:,38:376-37]
+data = data[:,:]
 mask = fits.getdata(ruta+"I_recor_mask.fits")
-mask=mask[:,38:376-37]
+mask=mask[:,:]
 box = data[int(Y_center)-10:int(Y_center )+10,int(X_center)-10:int(X_center)+10]
 norm_I = np.max(box)
 data = data/norm_I
@@ -44,8 +44,10 @@ ny, nx = data.shape
 moff_x = np.floor(nx / 2.0)
 moff_y = np.floor(ny / 2.0)
 
-psf_class = psf(nx,ny,psf_imgname,gauss_amp,mean_x, mean_y, theta_rot,\
-                stdv_x,stdv_y,moff_amp,moff_x, moff_y,width_moff,power_moff)
+# psf_class = psf(nx,ny,psf_imgname,gauss_amp,mean_x, mean_y, theta_rot,\
+#                 stdv_x,stdv_y,moff_amp,moff_x, moff_y,width_moff,power_moff)
+psf_class = psf(21,21,psf_imgname,gauss_amp,mean_x, mean_y, theta_rot,\
+                stdv_x,stdv_y,moff_amp,10, 10,width_moff,power_moff)
 class_method = getattr(psf_class, psf_type)
 psf_image = class_method() 
 # fig,ax = plt.subplots()
