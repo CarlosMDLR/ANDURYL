@@ -96,7 +96,7 @@ class hamiltonian_model:
             
             N = np.shape(modelin[self.trues_i[:],self.trues_j[:]])[0]
             chi_2 =(1/N)* torch.sum(((modelin[self.trues_i[:],self.trues_j[:]] - self.yt[self.trues_i[:],self.trues_j[:]])**2) / (noise[self.trues_i[:],self.trues_j[:]]**2))
-            print("chi^2= %.5f"%(chi_2))
+            #print("chi^2= %.5f"%(chi_2))
             return logL
 
         #########################################################
@@ -160,10 +160,10 @@ class hamiltonian_model:
         
         paramis_init = torch.tensor(paramis,requires_grad=True)
         
-        burn = 1000
-        step_size = 1
-        L =10
-        N = 1000
+        burn = 600
+        step_size = 0.1
+        L =60
+        N = 2000
         N_nuts = burn + N
         params_nuts = hamiltorch.sample(log_prob_func=logPosteriorSersic, 
                                         params_init=paramis_init, 
@@ -173,6 +173,12 @@ class hamiltonian_model:
                                         sampler=hamiltorch.Sampler.HMC_NUTS,
                                         burn=burn,
                                         desired_accept_rate=0.8)
+        
+        logPost=[]
+        for j in range(0,len(params_nuts)):
+            a = logPosteriorSersic(params_nuts[j])
+            logPost.append(a)
+        
         params_nuts = torch.cat(params_nuts[1:]).reshape(len(params_nuts[1:]),-1)
 
         params_nuts[:, 0],_,_ = transform(params_nuts[:, 0],0,1)
@@ -182,9 +188,11 @@ class hamiltonian_model:
         params_nuts[:, 4],_,_ = transform(params_nuts[:, 4],50,self.ny-50)
         params_nuts[:, 5],_,_ = transform(params_nuts[:, 5],0,0.999)
         params_nuts[:, 6],_,_ = transform(params_nuts[:, 6],0,180)
-
+        
+        max_logpost=np.argmax(logPost)
+        max_logpost_params= params_nuts[max_logpost]
         #params_nuts = torch.cat(params_nuts[1:]).reshape(len(params_nuts[1:]),-1).numpy()
-        return(params_nuts,burn,step_size,L,N)
+        return(params_nuts,burn,step_size,L,N,max_logpost_params)
     
     def hamiltonian_exponential(self):
         sigman = 1e-3

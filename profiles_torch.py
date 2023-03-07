@@ -13,10 +13,36 @@ from astropy.modeling.core import Fittable1DModel, Fittable2DModel
 from astropy.modeling.parameters import InputParameterError, Parameter
 from astropy.modeling.utils import ellipse_extent
 from scipy.special import gammaincinv
+import torch.nn.functional as F
+
+def nearest_index(array, value): 
+    array = torch.asarray(array)
+    val = (torch.abs(array - value)).argmin()
+    index = torch.where()
+    return()
+
+def rebin(a, *args):
+    '''rebin ndarray data into a smaller ndarray of the same rank whose dimensions
+    are factors of the original dimensions. eg. An array with 6 columns and 4 rows
+    can be reduced to have 6,3,2 or 1 columns and 4,2 or 1 rows.
+    example usages:
+    >>> a=rand(6,4); b=rebin(a,3,2)
+    >>> a=rand(6); b=rebin(a,2)
+    '''
+    shape = a.shape
+    lenShape = len(shape)
+    factor = np.ceil(np.asarray(shape)/np.asarray(args)).astype(int)
+    evList = ['a.reshape('] + \
+             [str(args[i])+',' for i in range(len(args))] + \
+             [str(factor[i])+',' for i in range(len(factor))] + \
+             [')'] + ['.sum(%d)'%(i+1) for i in range(lenShape)] + \
+             ['/factor[%d]'%i for i in range(lenShape)]
+    return eval(''.join(evList))
+
 
 def sersic(n,theta,r_eff,ellip,x,x_0,y,y_0,amplitude):
         bn = (2.0*n) - torch.tensor(0.327)
-        theta = theta*np.pi/180
+        theta = (theta*torch.pi/180)
         a, b = r_eff, (1-ellip) * r_eff
         cos_theta, sin_theta = torch.cos(theta), torch.sin(theta)
         x_min = -(x - x_0) * sin_theta + (y - y_0) * cos_theta
@@ -24,6 +50,17 @@ def sersic(n,theta,r_eff,ellip,x,x_0,y,y_0,amplitude):
 
         z = torch.sqrt(((x_min / a)**2) + ((x_maj/b)**2))
         return(amplitude * torch.exp(-bn*(((z**(1/n))) - 1)))
+
+# def sersic(n,theta,r_eff,ellip,x,x_0,y,y_0,amplitude):
+#         bn = (0.868*n)-torch.tensor(0.142)
+#         theta = (theta*np.pi/180)
+#         cos_theta, sin_theta = torch.cos(theta), torch.sin(theta)
+#         x_min = -(x - x_0) * sin_theta + (y - y_0) * cos_theta
+#         x_maj = -(x - x_0) * cos_theta - (y - y_0) * sin_theta
+
+#         z = torch.sqrt(((x_min)**2) + ((x_maj/(1-ellip))**2))
+#         invn = 1/n
+#         return(amplitude * 10**(-bn*(((z/r_eff)**(invn))-1)))
 # =============================================================================
 class Sersic2D:
     def __init__(self,x,y,amplitude,r_eff,n,x_0,y_0,ellip,theta):
@@ -69,7 +106,7 @@ class Sersic2D:
         .. [1] http://ned.ipac.caltech.edu/level5/March05/Graham/Graham2.html
         .. [2] https://docs.astropy.org/en/stable/_modules/astropy/modeling/functional_models.html#Sersic2D
         """
-        
+
         self.x = x
         self.y=y
         #Sersic params
@@ -89,9 +126,33 @@ class Sersic2D:
         # =============================================================================
         #  Center oversampling
         # =============================================================================   
+        ny,nx=map_ser.shape
+        try:
 
+            half_size = 5
+            x_left= int(self.x_0-half_size)
+            x_right= int(self.x_0+half_size)
+            y_left= int(self.y_0-half_size)
+            y_right= int(self.y_0+half_size)
+            
+            sub_x = torch.linspace(x_left, x_right, 121)
+            sub_y = torch.linspace(y_left, y_right, 121)
+            sub_yy,sub_xx= torch.meshgrid(sub_y, sub_x)
+            
+            submodel = sersic(self.n,self.theta,self.r_eff,self.ellip,sub_xx,self.x_0,sub_yy,self.y_0,self.amplitude)
+            rebin_size = 11
+            rebinned_submodel = rebin(submodel, rebin_size, rebin_size)
+            
+            map_ser[y_left:y_right+1,x_left:x_right+1] = rebinned_submodel.detach()
+            print("Oversampling: yes")
+        except ValueError:
+            print("Oversampling: no")
+            return(map_ser)
+
+        
+        return(map_ser)
         # try:
-        #     M=150; N = 150
+        #     M=200; N = 200
         #     l_size =5
         #     y_new, x_new =torch.meshgrid(\
         #     torch.linspace(int(torch.round(self.y_0)-l_size),\
@@ -119,9 +180,7 @@ class Sersic2D:
         #         print("Oversampling: yes")
         #     else:
         #         map_ser=map_ser
-        #         print("Oversampling: no")
-        return(map_ser)
-    
+        #         print("Oversampling: no")    
 # =============================================================================
 # Nofunciona
 # =============================================================================
