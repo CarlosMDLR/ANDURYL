@@ -130,10 +130,10 @@ class Sersic2D:
         try:
 
             half_size = 5
-            x_left= int(self.x_0-half_size)
-            x_right= int(self.x_0+half_size)
-            y_left= int(self.y_0-half_size)
-            y_right= int(self.y_0+half_size)
+            x_left= int(torch.ceil(self.x_0-half_size))
+            x_right= int(torch.ceil(self.x_0+half_size))
+            y_left= int(torch.ceil(self.y_0-half_size))
+            y_right= int(torch.ceil(self.y_0+half_size))
             
             sub_x = torch.linspace(x_left, x_right, 121)
             sub_y = torch.linspace(y_left, y_right, 121)
@@ -142,7 +142,7 @@ class Sersic2D:
             submodel = sersic(self.n,self.theta,self.r_eff,self.ellip,sub_xx,self.x_0,sub_yy,self.y_0,self.amplitude)
             rebin_size = 11
             rebinned_submodel = rebin(submodel, rebin_size, rebin_size)
-            
+        
             map_ser[y_left:y_right+1,x_left:x_right+1] = rebinned_submodel.detach()
             print("Oversampling: yes")
         except ValueError:
