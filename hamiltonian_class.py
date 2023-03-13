@@ -160,10 +160,10 @@ class hamiltonian_model:
         
         paramis_init = torch.tensor(paramis,requires_grad=True)
         
-        burn = 1000
+        burn = 500
         step_size = 0.1
         L =20
-        N = 1000
+        N = 1500
         N_nuts = burn + N
         params_nuts = hamiltorch.sample(log_prob_func=logPosteriorSersic, 
                                         params_init=paramis_init, 
