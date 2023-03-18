@@ -14,7 +14,7 @@ from astropy.modeling.parameters import InputParameterError, Parameter
 from astropy.modeling.utils import ellipse_extent
 from scipy.special import gammaincinv
 import torch.nn.functional as F
-
+torch.set_default_dtype(torch.float64)
 
 def rebin(a, *args):
     '''rebin ndarray data into a smaller ndarray of the same rank whose dimensions
@@ -28,9 +28,8 @@ def rebin(a, *args):
     lenShape = len(shape)
     factor = np.ceil(np.asarray(shape)/np.asarray(args)).astype(int)
     evList = ['a.reshape('] + \
-             [str(args[i])+',' for i in range(len(args))] + \
-             [str(factor[i])+',' for i in range(len(factor))] + \
-             [')'] + ['.sum(%d)'%(i+1) for i in range(lenShape)] + \
+             [str(args[i])+','+str(factor[i])+',' for i in range(len(args))] + \
+             [')'] + ['.sum(%d)'%(i+1) for i in range(0,lenShape)] + \
              ['/factor[%d]'%i for i in range(lenShape)]
     return eval(''.join(evList))
 
@@ -123,29 +122,86 @@ class Sersic2D:
         # =============================================================================
         #  Center oversampling
         # =============================================================================   
-
+    
         ny,nx=map_ser.shape
         try:
 
-            half_size = 32
-            x_left= int(torch.ceil(self.x_0-half_size))
-            x_right= int(torch.ceil(self.x_0+half_size))
-            y_left= int(torch.ceil(self.y_0-half_size))
-            y_right= int(torch.ceil(self.y_0+half_size))
-            
-            sub_x = torch.linspace(x_left, x_right, 4225)
-            sub_y = torch.linspace(y_left, y_right, 4225)
+            half_size = 5
+            x_left= ((self.x_0-half_size))-0.5
+            x_right= ((self.x_0+half_size))-0.5
+            y_left= ((self.y_0-half_size))-0.5
+            y_right= ((self.y_0+half_size))-0.5
+
+            sub_x = torch.linspace(x_left.item(), x_right.item(), 100)
+            sub_y = torch.linspace(y_left.item(), y_right.item(), 100)
             sub_yy,sub_xx= torch.meshgrid(sub_y, sub_x)
-            
+
             submodel = sersic(self.n,self.theta,self.r_eff,self.ellip,sub_xx,self.x_0,sub_yy,self.y_0,self.amplitude)
-            rebin_size = 65
+            rebin_size = 10
             rebinned_submodel = rebin(submodel, rebin_size, rebin_size)
-        
-            map_ser[y_left:y_right+1,x_left:x_right+1] = rebinned_submodel.detach()
+            x_left= int((self.x_0-half_size)+0.5)
+            x_right= int((self.x_0+half_size)+0.5)
+            y_left= int((self.y_0-half_size)+0.5)
+            y_right= int((self.y_0+half_size)+0.5)
+            map_ser[y_left:y_right,x_left:x_right] = rebinned_submodel.detach()
             print("Oversampling: yes")
+            
+            return(map_ser)
         except ValueError:
             print("Oversampling: no")
             return(map_ser)
+# =============================================================================
+#         # ny,nx=map_ser.shape
+        # try:
+
+        #     half_size = 5
+        #     x_left= int(torch.ceil(self.x_0-half_size))
+        #     x_right= int(torch.ceil(self.x_0+half_size))
+        #     y_left= int(torch.ceil(self.y_0-half_size))
+        #     y_right= int(torch.ceil(self.y_0+half_size))
+            
+        #     sub_x = torch.linspace(x_left, x_right, 1210)
+        #     sub_y = torch.linspace(y_left, y_right, 1210)
+        #     sub_yy,sub_xx= torch.meshgrid(sub_y, sub_x)
+            
+        #     submodel = sersic(self.n,self.theta,self.r_eff,self.ellip,sub_xx,self.x_0,sub_yy,self.y_0,self.amplitude)
+        #     rebin_size = 11
+        #     rebinned_submodel = rebin(submodel, rebin_size, rebin_size)
+            
+        #     map_ser[y_left:y_right+1,x_left:x_right+1] = rebinned_submodel.detach()
+        #     print("Oversampling: yes")
+        # except ValueError:
+        #     print("Oversampling: no")
+        #     return(map_ser)
+# =============================================================================
+# =============================================================================
+#         Para imitar galfit
+# =============================================================================
+        # ny,nx=map_ser.shape
+        # try:
+
+        #     half_size = 5
+        #     x_left= ((self.x_0-29.5))
+        #     x_right= ((self.x_0+29.5))
+        #     y_left= ((self.y_0-33.5))
+        #     y_right= ((self.y_0+33.5))
+            
+        #     sub_x = torch.linspace(x_left.item(), x_right.item(), 590)
+        #     sub_y = torch.linspace(y_left.item(), y_right.item(), 670)
+        #     sub_yy,sub_xx= torch.meshgrid(sub_y, sub_x)
+            
+        #     submodel = sersic(self.n,self.theta,self.r_eff,self.ellip,sub_xx,self.x_0,sub_yy,self.y_0,self.amplitude)
+        #     rebin_size = 11
+        #     rebinned_submodel = rebin(submodel, 67, 59)
+        #     x_left= int(torch.ceil(self.x_0-29.5))
+        #     x_right= int(torch.ceil(self.x_0+29.5))
+        #     y_left= int(torch.ceil(self.y_0-33.5))
+        #     y_right= int(torch.ceil(self.y_0+33.5))
+        #     map_ser[y_left:y_right,x_left:x_right] = rebinned_submodel.detach()
+        #     print("Oversampling: yes")
+        # except ValueError:
+        #     print("Oversampling: no")
+        #     return(map_ser)
 
         return(map_ser)
    

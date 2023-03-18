@@ -8,6 +8,7 @@ import torch
 import numpy as np
 from profiles_torch import Sersic2D,Exponential2D,Ferrers2D
 import matplotlib.pyplot as plt
+torch.set_default_dtype(torch.float64)
 class profiles:
     def __init__(self,x_size=100,y_size=100,rebin_size=3):
         self.x_size = x_size

@@ -13,7 +13,7 @@ import torch.nn.functional as F
 from profile_select import *
 from priors import priors
 from tqdm import tqdm
-
+torch.set_default_dtype(torch.float64)
 
 def transform(param, a, b):
     """
@@ -160,8 +160,8 @@ class hamiltonian_model:
         
         paramis_init = torch.tensor(paramis,requires_grad=True)
         
-        burn = 500
-        step_size = 0.1
+        burn = 1000
+        step_size = 0.01
         L =20
         N = 1500
         N_nuts = burn + N
@@ -189,10 +189,10 @@ class hamiltonian_model:
         params_nuts[:, 5],_,_ = transform(params_nuts[:, 5],0,0.999)
         params_nuts[:, 6],_,_ = transform(params_nuts[:, 6],0,180)
         
-        max_logpost=np.argmax(logPost)
-        max_logpost_params= params_nuts[max_logpost]
+        #max_logpost=np.argmax(logPost)
+        #max_logpost_params= params_nuts[max_logpost]
         #params_nuts = torch.cat(params_nuts[1:]).reshape(len(params_nuts[1:]),-1).numpy()
-        return(params_nuts,burn,step_size,L,N,max_logpost_params)
+        return(params_nuts,burn,step_size,L,N)#,max_logpost_params)
     
     def hamiltonian_exponential(self):
         sigman = 1e-3
