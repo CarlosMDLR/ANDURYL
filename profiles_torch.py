@@ -27,10 +27,14 @@ def rebin(a, *args):
     shape = a.shape
     lenShape = len(shape)
     factor = np.ceil(np.asarray(shape)/np.asarray(args)).astype(int)
+    # evList = ['a.reshape('] + \
+    #           [str(args[i])+','+str(factor[i])+',' for i in range(len(args))] + \
+    #           [')'] + ['.sum(%d)'%(i+1) for i in range(0,lenShape)] + \
+    #           ['/factor[%d]'%i for i in range(lenShape)]
     evList = ['a.reshape('] + \
-             [str(args[i])+','+str(factor[i])+',' for i in range(len(args))] + \
-             [')'] + ['.sum(%d)'%(i+1) for i in range(0,lenShape)] + \
-             ['/factor[%d]'%i for i in range(lenShape)]
+              [str(args[i])+','+str(factor[i])+',' for i in range(len(args))] + \
+              [')'] + ['.mean(%d)'%(i+1) for i in range(0,lenShape)]
+    
     return eval(''.join(evList))
 
 
@@ -127,11 +131,11 @@ class Sersic2D:
         try:
 
             half_size = 5
-            x_left= ((self.x_0-half_size))-0.5
-            x_right= ((self.x_0+half_size))-0.5
-            y_left= ((self.y_0-half_size))-0.5
-            y_right= ((self.y_0+half_size))-0.5
-
+            x_left= (torch.round(self.x_0)-half_size)-0.5
+            x_right= (torch.round(self.x_0)+half_size)-0.5
+            y_left= (torch.round(self.y_0)-half_size)-0.5
+            y_right= (torch.round(self.y_0)+half_size)-0.5
+            #breakpoint()
             sub_x = torch.linspace(x_left.item(), x_right.item(), 100)
             sub_y = torch.linspace(y_left.item(), y_right.item(), 100)
             sub_yy,sub_xx= torch.meshgrid(sub_y, sub_x)
@@ -139,10 +143,11 @@ class Sersic2D:
             submodel = sersic(self.n,self.theta,self.r_eff,self.ellip,sub_xx,self.x_0,sub_yy,self.y_0,self.amplitude)
             rebin_size = 10
             rebinned_submodel = rebin(submodel, rebin_size, rebin_size)
-            x_left= int((self.x_0-half_size)+0.5)
-            x_right= int((self.x_0+half_size)+0.5)
-            y_left= int((self.y_0-half_size)+0.5)
-            y_right= int((self.y_0+half_size)+0.5)
+            x_left= int(torch.round(self.x_0)-half_size)
+            x_right= int(torch.round(self.x_0)+half_size)
+            y_left= int(torch.round(self.y_0)-half_size)
+            y_right= int(torch.round(self.y_0)+half_size)
+            #breakpoint()
             map_ser[y_left:y_right,x_left:x_right] = rebinned_submodel.detach()
             print("Oversampling: yes")
             
