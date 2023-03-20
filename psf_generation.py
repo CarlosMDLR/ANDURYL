@@ -10,7 +10,15 @@ A bayesiaN Decomposition code for Use in photometRY Labors
 from astropy.modeling.models import Gaussian2D,Moffat2D
 import matplotlib.pyplot as plt
 from read_params import *
-
+def moff(x,y,fwhm,beta):
+    xc,yc= int(len(x)/2),int(len(y)/2)
+    rx=(x-xc)
+    ry=(y-yc)
+    r=np.sqrt(rx**2 + ry**2)
+    alpha=fwhm/(2 *np.sqrt(2**(1/beta) -1))
+    beta=beta
+    moffat=((beta-1)/(alpha**2))*(1 +(r/alpha)**2)**(-beta)
+    return(moffat)
 
 class psf: 
     def __init__(self,xsize,ysize,psf_imgname,gauss_amp,mean_x, mean_y, theta_rot, stdv_x, \
@@ -37,8 +45,9 @@ class psf:
         return(g1)
     def Moffat(self): 
         y, x = np.mgrid[0:int(self.ysize), 0:int(self.xsize)]
-        mf = Moffat2D( self.moff_amp,self.moff_x,self.moff_y,self.width_moff,self.power_moff)
-        m = mf(x,y)
+        #mf = Moffat2D( self.moff_amp,self.moff_x,self.moff_y,self.width_moff,self.power_moff)
+        m= moff(x,y,self.width_moff,self.power_moff)
+        #m = mf(x,y)
         m /=m.sum()
         return(m)
 

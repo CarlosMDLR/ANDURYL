@@ -38,27 +38,27 @@ def rebin(a, *args):
     return eval(''.join(evList))
 
 
-# def sersic(n,theta,r_eff,ellip,x,x_0,y,y_0,amplitude):
-#         bn = (2.0*n) - torch.tensor(0.327)
-#         theta = (theta*torch.pi/180)
-#         a, b = r_eff, (1-ellip) * r_eff
-#         cos_theta, sin_theta = torch.cos(theta), torch.sin(theta)
-#         x_min = -(x - x_0) * sin_theta + (y - y_0) * cos_theta
-#         x_maj = -(x - x_0) * cos_theta - (y - y_0) * sin_theta
-
-#         z = torch.sqrt(((x_min / a)**2) + ((x_maj/b)**2))
-#         return(amplitude * torch.exp(-bn*(((z**(1/n))) - 1)))
-
 def sersic(n,theta,r_eff,ellip,x,x_0,y,y_0,amplitude):
-        bn = (0.868*n)-torch.tensor(0.142)
-        theta = (theta*np.pi/180)
+        bn = (2.0*n) - torch.tensor(0.327)
+        theta = (theta*torch.pi/180)
+        a, b = r_eff, (1-ellip) * r_eff
         cos_theta, sin_theta = torch.cos(theta), torch.sin(theta)
         x_min = -(x - x_0) * sin_theta + (y - y_0) * cos_theta
         x_maj = -(x - x_0) * cos_theta - (y - y_0) * sin_theta
 
-        z = torch.sqrt(((x_min)**2) + ((x_maj/(1-ellip))**2))
-        invn = 1/n
-        return(amplitude * 10**(-bn*(((z/r_eff)**(invn))-1)))
+        z = torch.sqrt(((x_min / a)**2) + ((x_maj/b)**2))
+        return(amplitude * torch.exp(-bn*(((z**(1/n))) - 1)))
+
+# def sersic(n,theta,r_eff,ellip,x,x_0,y,y_0,amplitude):
+#         bn = (0.868*n)-torch.tensor(0.142)
+#         theta = (theta*torch.pi/180)
+#         cos_theta, sin_theta = torch.cos(theta), torch.sin(theta)
+#         x_min = -(x - x_0) * sin_theta + (y - y_0) * cos_theta
+#         x_maj = -(x - x_0) * cos_theta - (y - y_0) * sin_theta
+
+#         z = torch.sqrt(((x_min)**2) + ((x_maj/(1-ellip))**2))
+#         invn = 1/n
+#         return(amplitude * 10**(-bn*(((z/r_eff)**(invn))-1)))
 
 
 # =============================================================================
