@@ -27,10 +27,6 @@ def rebin(a, *args):
     shape = a.shape
     lenShape = len(shape)
     factor = np.ceil(np.asarray(shape)/np.asarray(args)).astype(int)
-    # evList = ['a.reshape('] + \
-    #           [str(args[i])+','+str(factor[i])+',' for i in range(len(args))] + \
-    #           [')'] + ['.sum(%d)'%(i+1) for i in range(0,lenShape)] + \
-    #           ['/factor[%d]'%i for i in range(lenShape)]
     evList = ['a.reshape('] + \
               [str(args[i])+','+str(factor[i])+',' for i in range(len(args))] + \
               [')'] + ['.mean(%d)'%(i+1) for i in range(0,lenShape)]
@@ -38,27 +34,27 @@ def rebin(a, *args):
     return eval(''.join(evList))
 
 
-def sersic(n,theta,r_eff,ellip,x,x_0,y,y_0,amplitude):
-        bn = (2.0*n) - torch.tensor(0.327)
-        theta = (theta*torch.pi/180)
-        a, b = r_eff, (1-ellip) * r_eff
-        cos_theta, sin_theta = torch.cos(theta), torch.sin(theta)
-        x_min = -(x - x_0) * sin_theta + (y - y_0) * cos_theta
-        x_maj = -(x - x_0) * cos_theta - (y - y_0) * sin_theta
-
-        z = torch.sqrt(((x_min / a)**2) + ((x_maj/b)**2))
-        return(amplitude * torch.exp(-bn*(((z**(1/n))) - 1)))
-
 # def sersic(n,theta,r_eff,ellip,x,x_0,y,y_0,amplitude):
-#         bn = (0.868*n)-torch.tensor(0.142)
+#         bn = (2.0*n) - torch.tensor(0.327)
 #         theta = (theta*torch.pi/180)
+#         a, b = r_eff, (1-ellip) * r_eff
 #         cos_theta, sin_theta = torch.cos(theta), torch.sin(theta)
 #         x_min = -(x - x_0) * sin_theta + (y - y_0) * cos_theta
 #         x_maj = -(x - x_0) * cos_theta - (y - y_0) * sin_theta
 
-#         z = torch.sqrt(((x_min)**2) + ((x_maj/(1-ellip))**2))
-#         invn = 1/n
-#         return(amplitude * 10**(-bn*(((z/r_eff)**(invn))-1)))
+#         z = torch.sqrt(((x_min / a)**2) + ((x_maj/b)**2))
+#         return(amplitude * torch.exp(-bn*(((z**(1/n))) - 1)))
+
+def sersic(n,theta,r_eff,ellip,x,x_0,y,y_0,amplitude):
+        bn = (0.868*n)-torch.tensor(0.142)
+        theta = (theta*torch.pi/180)
+        cos_theta, sin_theta = torch.cos(theta), torch.sin(theta)
+        x_min = -(x - x_0) * sin_theta + (y - y_0) * cos_theta
+        x_maj = -(x - x_0) * cos_theta - (y - y_0) * sin_theta
+
+        z = torch.sqrt(((x_min)**2) + ((x_maj/(1-ellip))**2))
+        invn = 1/n
+        return(amplitude * 10**(-bn*(((z/r_eff)**(invn))-1)))
 
 
 # =============================================================================
@@ -135,10 +131,10 @@ class Sersic2D:
             x_right= (torch.round(self.x_0)+half_size)-0.5
             y_left= (torch.round(self.y_0)-half_size)-0.5
             y_right= (torch.round(self.y_0)+half_size)-0.5
-            #breakpoint()
-            sub_x = torch.linspace(x_left.item(), x_right.item(), 100)
-            sub_y = torch.linspace(y_left.item(), y_right.item(), 100)
-            sub_yy,sub_xx= torch.meshgrid(sub_y, sub_x)
+           
+            sub_x = torch.linspace(x_left.item(), x_right.item(), 101)+0.05
+            sub_y = torch.linspace(y_left.item(), y_right.item(), 101)+0.05
+            sub_yy,sub_xx= torch.meshgrid(sub_y[:-1], sub_x[:-1])
 
             submodel = sersic(self.n,self.theta,self.r_eff,self.ellip,sub_xx,self.x_0,sub_yy,self.y_0,self.amplitude)
             rebin_size = 10
@@ -147,103 +143,14 @@ class Sersic2D:
             x_right= int(torch.round(self.x_0)+half_size)
             y_left= int(torch.round(self.y_0)-half_size)
             y_right= int(torch.round(self.y_0)+half_size)
-            #breakpoint()
+           
             map_ser[y_left:y_right,x_left:x_right] = rebinned_submodel.detach()
-            print("Oversampling: yes")
             
             return(map_ser)
         except ValueError:
-            print("Oversampling: no")
             return(map_ser)
-# =============================================================================
-#         # ny,nx=map_ser.shape
-        # try:
-
-        #     half_size = 5
-        #     x_left= int(torch.ceil(self.x_0-half_size))
-        #     x_right= int(torch.ceil(self.x_0+half_size))
-        #     y_left= int(torch.ceil(self.y_0-half_size))
-        #     y_right= int(torch.ceil(self.y_0+half_size))
-            
-        #     sub_x = torch.linspace(x_left, x_right, 1210)
-        #     sub_y = torch.linspace(y_left, y_right, 1210)
-        #     sub_yy,sub_xx= torch.meshgrid(sub_y, sub_x)
-            
-        #     submodel = sersic(self.n,self.theta,self.r_eff,self.ellip,sub_xx,self.x_0,sub_yy,self.y_0,self.amplitude)
-        #     rebin_size = 11
-        #     rebinned_submodel = rebin(submodel, rebin_size, rebin_size)
-            
-        #     map_ser[y_left:y_right+1,x_left:x_right+1] = rebinned_submodel.detach()
-        #     print("Oversampling: yes")
-        # except ValueError:
-        #     print("Oversampling: no")
-        #     return(map_ser)
-# =============================================================================
-# =============================================================================
-#         Para imitar galfit
-# =============================================================================
-        # ny,nx=map_ser.shape
-        # try:
-
-        #     half_size = 5
-        #     x_left= ((self.x_0-29.5))
-        #     x_right= ((self.x_0+29.5))
-        #     y_left= ((self.y_0-33.5))
-        #     y_right= ((self.y_0+33.5))
-            
-        #     sub_x = torch.linspace(x_left.item(), x_right.item(), 590)
-        #     sub_y = torch.linspace(y_left.item(), y_right.item(), 670)
-        #     sub_yy,sub_xx= torch.meshgrid(sub_y, sub_x)
-            
-        #     submodel = sersic(self.n,self.theta,self.r_eff,self.ellip,sub_xx,self.x_0,sub_yy,self.y_0,self.amplitude)
-        #     rebin_size = 11
-        #     rebinned_submodel = rebin(submodel, 67, 59)
-        #     x_left= int(torch.ceil(self.x_0-29.5))
-        #     x_right= int(torch.ceil(self.x_0+29.5))
-        #     y_left= int(torch.ceil(self.y_0-33.5))
-        #     y_right= int(torch.ceil(self.y_0+33.5))
-        #     map_ser[y_left:y_right,x_left:x_right] = rebinned_submodel.detach()
-        #     print("Oversampling: yes")
-        # except ValueError:
-        #     print("Oversampling: no")
-        #     return(map_ser)
-
         return(map_ser)
-   
-# =============================================================================
-# Otra manera de hacerlo
-# =============================================================================
-        # try:
-        #     M=200; N = 200
-        #     l_size =5
-        #     y_new, x_new =torch.meshgrid(\
-        #     torch.linspace(int(torch.round(self.y_0)-l_size),\
-        #                     int(torch.round(self.y_0)+l_size),M),\
-        #     torch.linspace(int(torch.round(self.x_0)-l_size),\
-        #                     int(torch.round(self.x_0)+l_size),N))
-        # except ValueError:
-        #     print("Oversampling: no")
-        #     return(map_ser)
-        # else:
-        #     m, n = map_ser[\
-        #     int(torch.round(self.y_0)-l_size):int(torch.round(self.y_0)+l_size)\
-        #     ,int(torch.round(self.x_0)-l_size):int(torch.round(self.x_0)+l_size)].shape
-        #     if m!=0 and n!=0 and m==n:
-        #         map_ser_new = sersic(self.n, self.theta, self.r_eff,\
-        #                               self.ellip, x_new, self.x_0, y_new,\
-        #                               self.y_0, self.amplitude)
-        #         new=map_ser_new.reshape((m,int(M/m),n,int(N/n))).mean(3).mean(1)
-               
-        #         map_ser[\
-        #         int(torch.round(self.y_0)-l_size):int(torch.round(self.y_0)\
-        #                                               +l_size),\
-        #         int(torch.round(self.x_0)-l_size):int(torch.round(self.x_0)\
-        #                                               +l_size)]=new
-        #         print("Oversampling: yes")
-        #     else:
-        #         map_ser=map_ser
-        #         print("Oversampling: no") 
-# =============================================================================
+
 class Exponential2D:
     r"""
     Two dimensional Exponential surface brightness profile.

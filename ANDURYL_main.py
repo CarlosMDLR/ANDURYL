@@ -30,10 +30,11 @@ galaxies,Ie,Re,n, ba_b, PA_bulge, B_T, X_center, Y_center, chi_2= \
     data_reader(user_in_file)
 
 data=fits.getdata(ruta+galaxies[0])*gain
+#data = fits.getdata("./Simulacion_Jairo/image_noconv.fits")
 data = data[:,:]
 mask = fits.getdata(ruta+"I_recor_mask.fits")
 mask=mask[:,:]
-box = data[int(Y_center)-10:int(Y_center )+10,int(X_center)-10:int(X_center)+10]
+box = data[int(Y_center)-10:int(Y_center)+10,int(X_center)-10:int(X_center)+10]
 norm_I = np.max(box)
 data = data/norm_I
 
@@ -44,16 +45,11 @@ ny, nx = data.shape
 moff_x = np.floor(nx / 2.0)
 moff_y = np.floor(ny / 2.0)
 
-# psf_class = psf(nx,ny,psf_imgname,gauss_amp,mean_x, mean_y, theta_rot,\
-#                 stdv_x,stdv_y,moff_amp,moff_x, moff_y,width_moff,power_moff)
 psf_class = psf(51,51,psf_imgname,gauss_amp,mean_x, mean_y, theta_rot,\
                 stdv_x,stdv_y,moff_amp,25,25,width_moff,power_moff)
 class_method = getattr(psf_class, psf_type)
 psf_image = class_method() 
-# fig,ax = plt.subplots()
-# mapi=plt.imshow((psf_image),cmap = cmap)
-# plt.colorbar(mapi)
-# plt.title("PSF_Moffat")
+
 # =============================================================================
 # Application of the Hamiltorch
 # =============================================================================
@@ -78,12 +74,13 @@ model_method = model_class.Sersic(amp_sersic=params2[0],\
                                               ellip_sersic=params2[5], \
                                                   theta_sersic=params2[6])
 ma = model_method
-b =  hamiltonian_class.conv2d_fft_psf(ma)
+b = hamiltonian_class.conv2d_fft_psf(ma)
 # =============================================================================
 # Residual calculation and data-model-residual plot
 # =============================================================================
 
 residual = b.detach().numpy()-data
+
 fig, ax = plt.subplots(nrows=1, ncols=3, figsize=(15, 15))
 mapi =ax[0].imshow((data*norm_I),cmap = cmap)
 cbar=fig.colorbar(mapi,ax=ax[0],shrink=0.5,extend='both')
@@ -118,17 +115,17 @@ ax[2].tick_params(direction="in",which='minor', length=4, color='k')
 #In logarithm
 
 fig, ax = plt.subplots(nrows=1, ncols=3, figsize=(15, 15))
-mapi =ax[0].imshow(np.log10(data*norm_I),cmap = cmap)
+mapi =ax[0].imshow(-2.5*np.log10((data*norm_I))+23.602800,cmap = cmap)
 cbar=fig.colorbar(mapi,ax=ax[0],shrink=0.5,extend='both')
-cbar.set_label(r"log I [$e^{-}$]",loc = 'center',fontsize = 16)
+cbar.set_label(r"$\mu [mag/arcsec^2]$",loc = 'center',fontsize = 16)
 ax[0].set_title("Data")
-mapi = ax[1].imshow(np.log10(b.detach().numpy()*norm_I),cmap = cmap)
+mapi = ax[1].imshow(-2.5*np.log10(b.detach().numpy()*norm_I)+23.602800,cmap = cmap)
 cbar=fig.colorbar(mapi,ax=ax[1],shrink=0.5,extend='both')
-cbar.set_label(r"log I [$e^{-}$]",loc = 'center',fontsize = 16)
+cbar.set_label(r"$\mu [mag/arcsec^2]$",loc = 'center',fontsize = 16)
 ax[1].set_title("Model")
-mapi = ax[2].imshow((abs(residual)/residual)*np.log10(abs(residual*norm_I)),cmap = cmap)
+mapi = ax[2].imshow((abs(residual)/residual)*(-2.5*np.log10(abs(residual*norm_I))+23.602800),cmap = cmap)
 cbar=fig.colorbar(mapi,ax=ax[2],shrink=0.5,extend='both')
-cbar.set_label(r"log I [$e^{-}$]",loc = 'center',fontsize = 16)
+cbar.set_label(r"$\mu [mag/arcsec^2]$",loc = 'center',fontsize = 16)
 ax[2].set_title("Residual map")
 plt.tick_params(axis="x", direction="in", length=7, width=1.2, color="k")
 plt.tick_params(axis="y", direction="in", length=7, width=1.2, color="k")
@@ -154,6 +151,7 @@ comprobar[:,0]=comprobar[:,0]*norm_I/gain
 g = plots.get_subplot_plotter(width_inch=20)
 g.settings.lab_fontsize = 14
 g.settings.axes_fontsize = 14
+g.settings.num_plot_contours = 4
 g.settings.axis_tick_x_rotation=45
 g.settings.figure_legend_frame = False
 g.settings.alpha_filled_add=0.4
@@ -161,21 +159,31 @@ g.settings.legend_fontsize=16
 g.settings.axis_tick_max_labels=3
 g.settings.title_limit_fontsize = 13
 g.settings.prob_y_ticks=True
-samples = MCSamples(samples=comprobar,names=['I0','Re','n','x0','y0','varepsilon','PA'],labels=['I_0^{norm}', 'R_e [px]','n','x_0 [px]','y_0 [px]',r'\varepsilon','PA [º]'])
+g.settings.solid_contour_palefactor = 0.9
+g.settings.alpha_filled_add = 0.6
+
+samples = MCSamples(samples=comprobar,names=['I0','Re','n','x0','y0','varepsilon','PA'],labels=['I_0 [Counts]', 'R_e [px]','n','x_0 [px]','y_0 [px]',r'\varepsilon','PA [º]'])
 g.triangle_plot([samples],
     filled=True,
-    legend_labels=[r'$I_0$=0.3, $R_e$=100, n=0.5, $x_0$=120, $y_0$=110, $\varepsilon$=0.4, PA=30'], 
+    #legend_labels=[r'$I_0$=0.3, $R_e$=100, n=0.5, $x_0$=120, $y_0$=110, $\varepsilon$=0.4, PA=30'], 
     line_args=[{'ls':'--', 'color':'green'},
                {'lw':2, 'color':'darkblue'}], 
     contour_colors=['darkblue'],
     title_limit=1, # first title limit (for 1D plots) is 68% by default
-    markers={'x2':0})
-plt.suptitle('Burn=%.0f ; Step=%.2e ; L=%.0f ; N=%.0f'%(burn,step_size,L,N), va='bottom',fontsize=14)
+    markers={'I0':params2[0].item(),'Re':params2[1].item(),'n':params2[2].item(),'x0':params2[3].item(),'y0':params2[4].item(),'varepsilon':params2[5].item(),'PA':params2[6].item()})
+for i in range(0,len(g.subplots)):
+    g.subplots[len(g.subplots)-1][i].xaxis.set_minor_locator(AutoMinorLocator());g.subplots[i][0].yaxis.set_minor_locator(AutoMinorLocator())
+#plt.suptitle('Burn=%.0f ; Step=%.2e ; L=%.0f ; N=%.0f'%(burn,step_size,L,N), va='bottom',fontsize=14)
 #plt.savefig('\Documentos\Master Astrofisica\TFM\ANDURYL\Figures'+ '\%s'%("figura_prueba2_sinover"), bbox_inches='tight', pad_inches=0.02)
 
 # Calculate the elapsed time
 elapsed_time = time() - start_time
 print("Elapsed time: %0.10f seconds." % elapsed_time)
+
+
+# =============================================================================
+# Test Debug
+# =============================================================================
 
 # =============================================================================
 # Prueba PSF simetrica sin torch
@@ -362,7 +370,40 @@ print("Elapsed time: %0.10f seconds." % elapsed_time)
 # ax[2].xaxis.set_minor_locator(AutoMinorLocator())
 # ax[2].yaxis.set_minor_locator(AutoMinorLocator())
 # ax[2].tick_params(direction="in",which='minor', length=4, color='k')
+# # #In logarithm
 
+# #In logarithm
+
+# fig, ax = plt.subplots(nrows=1, ncols=3, figsize=(15, 15))
+# mapi =ax[0].imshow(-2.5*np.log10((data*norm_I))+23.602800,vmin=13,vmax=22,cmap = cmap)
+# cbar=fig.colorbar(mapi,ax=ax[0],shrink=0.5,extend='both')
+# cbar.set_label(r"$\mu [mag/arcsec^2]$",loc = 'center',fontsize = 16)
+# ax[0].set_title("Data")
+# mapi = ax[1].imshow(-2.5*np.log10(b.detach().numpy()*norm_I)+23.602800,vmin=13,vmax=22,cmap = cmap)
+# cbar=fig.colorbar(mapi,ax=ax[1],shrink=0.5,extend='both')
+# cbar.set_label(r"$\mu [mag/arcsec^2]$",loc = 'center',fontsize = 16)
+# ax[1].set_title("Model")
+# mapi = ax[2].imshow((abs(residual)/residual)*(-2.5*np.log10(abs(residual*norm_I))+23.602800),cmap = cmap)
+# cbar=fig.colorbar(mapi,ax=ax[2],shrink=0.5,extend='both')
+# cbar.set_label(r"$\mu [mag/arcsec^2]$",loc = 'center',fontsize = 16)
+# ax[2].set_title("Residual map")
+# plt.tick_params(axis="x", direction="in", length=7, width=1.2, color="k")
+# plt.tick_params(axis="y", direction="in", length=7, width=1.2, color="k")
+# ax[0].set_ylabel(r'y [px]', fontsize = 16)
+# ax[0].set_xlabel(r'x [px]', fontsize =16)
+# ax[0].xaxis.set_minor_locator(AutoMinorLocator())
+# ax[0].yaxis.set_minor_locator(AutoMinorLocator())
+# ax[0].tick_params(direction="in",which='minor', length=4, color='k')
+# ax[1].set_ylabel(r'y [px]', fontsize = 16)
+# ax[1].set_xlabel(r'x [px]', fontsize =16)
+# ax[1].xaxis.set_minor_locator(AutoMinorLocator())
+# ax[1].yaxis.set_minor_locator(AutoMinorLocator())
+# ax[1].tick_params(direction="in",which='minor', length=4, color='k')
+# ax[2].set_ylabel(r'y [px]', fontsize = 16)
+# ax[2].set_xlabel(r'x [px]', fontsize =16)
+# ax[2].xaxis.set_minor_locator(AutoMinorLocator())
+# ax[2].yaxis.set_minor_locator(AutoMinorLocator())
+# ax[2].tick_params(direction="in",which='minor', length=4, color='k')
 # =============================================================================
 #  Prueba con simulacion sin convolucion pero con oversampling
 # =============================================================================
