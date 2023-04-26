@@ -33,10 +33,16 @@ data=fits.getdata(ruta+galaxies[0])*gain
 #data = fits.getdata("./Simulacion_Jairo/image_noconv.fits")
 data = data[:,:]
 mask = fits.getdata(ruta+"I_recor_mask.fits")
-mask=mask[:,:]
+mask = mask[:,:]
 box = data[int(Y_center)-10:int(Y_center)+10,int(X_center)-10:int(X_center)+10]
 norm_I = np.max(box)
-data = data/norm_I
+
+# Noise standard deviation map in counts
+noise_map = np.sqrt(np.abs(data) + (sky_sigm * gain)**2 + readout_noise**2)
+
+# Now we normalize the data and the noise map
+# noise_map /= norm_I
+# data /= norm_I
 
 # =============================================================================
 # Generation of the PSF
@@ -54,10 +60,12 @@ psf_image = class_method()
 # Application of the Hamiltorch
 # =============================================================================
 
-hamiltonian_class = hamiltonian_model(data.astype(np.float64),psf_image,mask,sky_sigm,readout_noise,gain,norm_I)
+hamiltonian_class = hamiltonian_model(data.astype(np.float64),psf_image,mask,sky_sigm,readout_noise,gain,norm_I, noise_map)
 class_method = getattr(hamiltonian_class, 'hamiltonian_sersic')
 params,burn,step_size,L,N = class_method() 
 comprobar = params.detach().numpy()
+
+breakpoint()
 
 # =============================================================================
 #  Model calculation
@@ -82,15 +90,15 @@ b = hamiltonian_class.conv2d_fft_psf(ma)
 residual = b.detach().numpy()-data
 
 fig, ax = plt.subplots(nrows=1, ncols=3, figsize=(15, 15))
-mapi =ax[0].imshow((data*norm_I),cmap = cmap)
+mapi =ax[0].imshow((data),cmap = cmap)
 cbar=fig.colorbar(mapi,ax=ax[0],shrink=0.5,extend='both')
 cbar.set_label(r"I [$e^{-}$]",loc = 'center',fontsize = 16)
 ax[0].set_title("Data")
-mapi = ax[1].imshow( b.detach().numpy()*norm_I,cmap = cmap)
+mapi = ax[1].imshow( b.detach().numpy(),cmap = cmap)
 cbar=fig.colorbar(mapi,ax=ax[1],shrink=0.5,extend='both')
 cbar.set_label(r"I [$e^{-}$]",loc = 'center',fontsize = 16)
 ax[1].set_title("Model")
-mapi = ax[2].imshow(residual*norm_I,vmin=-5000,cmap = cmap)
+mapi = ax[2].imshow(residual,vmin=-5000,cmap = cmap)
 cbar=fig.colorbar(mapi,ax=ax[2],shrink=0.5,extend='both')
 cbar.set_label(r"I [$e^{-}$]",loc = 'center',fontsize = 16)
 ax[2].set_title("Residual map")
@@ -115,15 +123,15 @@ ax[2].tick_params(direction="in",which='minor', length=4, color='k')
 #In logarithm
 
 fig, ax = plt.subplots(nrows=1, ncols=3, figsize=(15, 15))
-mapi =ax[0].imshow(-2.5*np.log10((data*norm_I))+23.602800,cmap = cmap)
+mapi =ax[0].imshow(-2.5*np.log10((data))+23.602800,cmap = cmap)
 cbar=fig.colorbar(mapi,ax=ax[0],shrink=0.5,extend='both')
 cbar.set_label(r"$\mu [mag/arcsec^2]$",loc = 'center',fontsize = 16)
 ax[0].set_title("Data")
-mapi = ax[1].imshow(-2.5*np.log10(b.detach().numpy()*norm_I)+23.602800,cmap = cmap)
+mapi = ax[1].imshow(-2.5*np.log10(b.detach().numpy())+23.602800,cmap = cmap)
 cbar=fig.colorbar(mapi,ax=ax[1],shrink=0.5,extend='both')
 cbar.set_label(r"$\mu [mag/arcsec^2]$",loc = 'center',fontsize = 16)
 ax[1].set_title("Model")
-mapi = ax[2].imshow((abs(residual)/residual)*(-2.5*np.log10(abs(residual*norm_I))+23.602800),cmap = cmap)
+mapi = ax[2].imshow((abs(residual)/residual)*(-2.5*np.log10(abs(residual))+23.602800),cmap = cmap)
 cbar=fig.colorbar(mapi,ax=ax[2],shrink=0.5,extend='both')
 cbar.set_label(r"$\mu [mag/arcsec^2]$",loc = 'center',fontsize = 16)
 ax[2].set_title("Residual map")
@@ -147,7 +155,7 @@ ax[2].tick_params(direction="in",which='minor', length=4, color='k')
 # =============================================================================
 #  Triangular plot
 # =============================================================================
-comprobar[:,0]=comprobar[:,0]*norm_I/gain
+comprobar[:,0]=comprobar[:,0]/gain
 g = plots.get_subplot_plotter(width_inch=20)
 g.settings.lab_fontsize = 14
 g.settings.axes_fontsize = 14

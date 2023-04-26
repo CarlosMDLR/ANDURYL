@@ -14,6 +14,7 @@ from profile_select import *
 from priors import priors
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+from collections import OrderedDict
 torch.set_default_dtype(torch.float64)
 
 def transform(param, a, b):
@@ -43,19 +44,17 @@ class hamiltonian_model:
         -Exponential (in progress)
         -Ferrers (in progress)
     """
-    def __init__(self, image,psf,mask,sky_sigma,read_noise,gain, normfactor,model_type='Sersic'):
+    def __init__(self, image,psf,mask,sky_sigma,read_noise,gain, normfactor, noise_map, model_type='Sersic'):
 
         # Here the mask is applied keeping the indices that have not been omitted
-        self.mask=mask/np.max(mask)
-        self.trues = np.where((self.mask !=1))
-        self.trues_i=self.trues[0]
-        self.trues_j=self.trues[1]
+        self.mask = torch.tensor(1.0 - mask/np.max(mask))
         #---------------------------------------------------------------------#
         self.image = image #image of the galaxy to adjust
         self.psf = psf #psf previously generated in the main program 
         self.sky_sigma=sky_sigma
         self.read_noise=read_noise
         self.gain=gain
+        self.noise_map = torch.tensor(noise_map)
         self.model_class = profiles(y_size=self.image.shape[0],x_size=self.image.shape[1])
         self.normfactor=normfactor
         self.model_type = model_type
@@ -82,7 +81,12 @@ class hamiltonian_model:
         """
         Function to adjust the galaxy with the Sersic profile
         """
-        def logPosteriorSersic(pars):
+
+        self.left = [-2, 0.0, 0.5, 0.1, 0.1, 0,   0]
+        self.right = [2, 3.0, 10,  1.0, 1.0, 0.8, 180]
+
+        # General function to return the logL and chi2
+        def logPosteriorSersic(pars, stop=False):
             #List of params
             # pars[0]=amplitude
             # pars[1]= Re
@@ -96,63 +100,160 @@ class hamiltonian_model:
             #to generate the model of the galaxy in physical units.
             #In the parameters of the center, the entire image is not chosen 
             #so that there are no conflicts with the oversampling and the edges of the image
-            a0,lodget0,prior0 = transform(pars[0],0,1)
-            a1,lodget1,prior1 = transform(pars[1],0.001,200)
-            a2,lodget2,prior2 = transform(pars[2],0.001,10)
-            a3,lodget3,prior3 = transform(pars[3],15,self.nx-15)
-            a4,lodget4,prior4 = transform(pars[4],15,self.ny-15)
-            a5,lodget5,prior5 = transform(pars[5],0,0.999)
-            a6,lodget6,prior6 = transform(pars[6],0,180)
-            
-            #The model is created using a Sersic profile
+
+            a0, lodget0, prior0 = transform(pars[0], self.left[0], self.right[0])
+            a1, lodget1, prior1 = transform(pars[1], self.left[1], self.right[1])
+            a2, lodget2, prior2 = transform(pars[2], self.left[2], self.right[2])
+            a3, lodget3, prior3 = transform(pars[3], self.left[3], self.right[3])
+            a4, lodget4, prior4 = transform(pars[4], self.left[4], self.right[4])
+            a5, lodget5, prior5 = transform(pars[5], self.left[5], self.right[5])
+            a6, lodget6, prior6 = transform(pars[6], self.left[6], self.right[6])
+                       
+                         
+             #The model is created using a Sersic profile
             if (self.model_type == 'Sersic'):
-                model_method = self.model_class.Sersic(amp_sersic=a0,r_eff_sersic=a1,\
-                                       n_sersic=a2,x0_sersic=a3,\
-                                           y0_sersic=a4,\
+                model_method = self.model_class.Sersic(amp_sersic=10**a0,r_eff_sersic=10**a1,\
+                                       n_sersic=a2,x0_sersic=a3*self.nx,\
+                                           y0_sersic=a4*self.ny,\
                                                ellip_sersic=a5,\
                                                    theta_sersic=a6)
+                
+            
             #Convolution with the PSF
-            modelin= self.conv2d_fft_psf(model_method)
+            modelin = self.conv2d_fft_psf(model_method)
+                      
+            logL_im = (self.yt - modelin)**2 / self.noise_map**2
+
+            N = torch.sum(self.mask)
+
+            chi2_unnormalized = torch.sum(logL_im * self.mask)
             
-            #The noise and logL are calculated and the latter is returned.
-            noise = torch.sqrt((abs(self.yt)*self.normfactor+self.sky_sigma*self.gain +self.read_noise**2 ))/np.sqrt(self.normfactor)
-            logL = (-0.5 * torch.sum(((abs(self.yt[self.trues_i[:],self.trues_j[:]])-modelin[self.trues_i[:],self.trues_j[:]])**2) / (noise[self.trues_i[:],self.trues_j[:]]**2)))+lodget0.sum()+lodget1.sum()\
-                +lodget2.sum()+lodget3.sum()+lodget4.sum()+lodget5.sum()+lodget6.sum()\
-                    #+prior0+prior1+prior2+prior3+prior4+prior5+prior6
-            
-            N = np.shape(modelin[self.trues_i[:],self.trues_j[:]])[0]
-            chi_2 =(1/N)* torch.sum(((abs(self.yt[self.trues_i[:],self.trues_j[:]])-modelin[self.trues_i[:],self.trues_j[:]])**2) / (noise[self.trues_i[:],self.trues_j[:]]**2))
-            print("chi^2= %.5f"%(chi_2))
+            logdet = lodget0.sum() + lodget1.sum() + lodget2.sum() + lodget3.sum() + lodget4.sum() + lodget5.sum() + lodget6.sum()            
+            logL = -0.5 * chi2_unnormalized + logdet
+
+            chi2 = chi2_unnormalized / N
+
+            if (stop):
+                print(pars, chi2)
+
+            return logL, chi2, modelin
+        
+        # Specialized functions to return the logL and chi2 only
+        def logPosteriorSersic_logL(pars):
+            logL, chi2, model = logPosteriorSersic(pars, stop=False)
             return logL
+        
+        def logPosteriorSersic_chi2(pars):
+            logL, chi2, model = logPosteriorSersic(pars)
+            return chi2
       
         #paramis = np.array([24.51/3922.3203,80,5.10,182.67604,154.94841,1- 0.7658242620261781,84.6835058750300078])
         #Initial parameters
-        paramis = np.array([0.3,100,4.5,150,150,0.4,30])
+        paramis = np.array([0.0,1.0,4.5,150.0/self.nx,150.0/self.ny,0.4,30])        
         
-        paramis[0] = invtransform(paramis[0],0,1)
-        paramis[1] = invtransform(paramis[1],0.001,200)
-        paramis[2] = invtransform(paramis[2],0.001,10)
-        paramis[3] = invtransform(paramis[3],15,self.nx-15)
-        paramis[4] = invtransform(paramis[4],15,self.ny-15)
-        paramis[5] = invtransform(paramis[5],0,0.999)
-        paramis[6] = invtransform(paramis[6],0,180)
+        paramis[0] = invtransform(paramis[0], self.left[0], self.right[0])
+        paramis[1] = invtransform(paramis[1], self.left[1], self.right[1])
+        paramis[2] = invtransform(paramis[2], self.left[2], self.right[2])
+        paramis[3] = invtransform(paramis[3], self.left[3], self.right[3])
+        paramis[4] = invtransform(paramis[4], self.left[4], self.right[4])
+        paramis[5] = invtransform(paramis[5], self.left[5], self.right[5])
+        paramis[6] = invtransform(paramis[6], self.left[6], self.right[6])
         
-        paramis_init = torch.tensor(paramis,requires_grad=True)
+        paramis_init = torch.tensor(paramis, requires_grad=True)
+
+        # Use Adam to find the maximum likelihood solution
+        optim = torch.optim.Adam([paramis_init], lr=0.05)
+        t = tqdm(range(100))
+        for i in t:
+            optim.zero_grad()
+            loss = logPosteriorSersic_chi2(paramis_init)
+            loss.backward()            
+            optim.step()
+
+            a0, _, _ = transform(paramis_init[0], self.left[0], self.right[0])
+            a1, _, _ = transform(paramis_init[1], self.left[1], self.right[1])
+            a2, _, _ = transform(paramis_init[2], self.left[2], self.right[2])
+            a3, _, _ = transform(paramis_init[3], self.left[3], self.right[3])
+            a4, _, _ = transform(paramis_init[4], self.left[4], self.right[4])
+            a5, _, _ = transform(paramis_init[5], self.left[5], self.right[5])
+            a6, _, _ = transform(paramis_init[6], self.left[6], self.right[6])
+
+            tmp = OrderedDict()
+            tmp['a0'] = 10.0**a0.item()
+            tmp['a1'] = 10.0**a1.item()
+            tmp['a2'] = a2.item()
+            tmp['a3'] = self.nx*a3.item()
+            tmp['a4'] = self.ny*a4.item()
+            tmp['a5'] = a5.item()
+            tmp['a6'] = a6.item()
+            tmp['chi2'] = loss.item()
+
+            t.set_postfix(ordered_dict=tmp)        
+            
+
+        print('ML solution')
+        
+        print(f'A    = {10.0**a0.item()}')
+        print(f'Re   = {10.0**a1.item()}')
+        print(f'n    = {a2.item()}')
+        print(f'x0   = {self.nx*a3.item()}')
+        print(f'y0   = {self.ny*a4.item()}')
+        print(f'e    = {a5.item()}')
+        print(f'theta= {a6.item()}')
+
+        logL, chi2, model = logPosteriorSersic(paramis_init)
+
+        
+        # down_par = 0.5
+        # up_par = 1.5
+
+        # self.left[0] = a0.item() * down_par
+        # self.right[0] = a0.item() * up_par
+
+        # self.left[1] = a1.item() * down_par
+        # self.right[1] = a1.item() * up_par
+
+        # self.left[2] = a2.item() * down_par
+        # self.right[2] = a2.item() * up_par
+
+        # self.left[3] = a3.item() * down_par
+        # self.right[3] = a3.item() * up_par
+
+        # self.left[4] = a4.item() * down_par
+        # self.right[4] = a4.item() * up_par
+
+        # self.left[5] = a5.item() * down_par
+        # self.right[5] = a5.item() * up_par
+
+        # self.left[6] = a6.item() * down_par
+        # self.right[6] = a6.item() * up_par
+
+
+        # pl.semilogy(self.yt[154, :])
+        # pl.semilogy(model.detach()[154, :])
+
+        # breakpoint()
+
+        paramis_init = paramis_init.detach().requires_grad_(True)
+
+        print(paramis_init)
+        breakpoint()
         
         #Various hamiltorch parameters
-        burn = 500 #Number of initial iterations with a step size equal to the position below
-        step_size = 10 #initial step_size
-        L =10 #Number of "jumps" per iteration
-        N = 1500 #Number of iterations with an adjusted step after the burn phase
+        burn = 50 #Number of initial iterations with a step size equal to the position below
+        step_size = 0.1 #initial step_size
+        L = 50 #Number of "jumps" per iteration
+        N = 100 #Number of iterations with an adjusted step after the burn phase
         N_nuts = burn + N
-        params_nuts = hamiltorch.sample(log_prob_func=logPosteriorSersic, 
-                                        params_init=paramis_init, 
+        params_nuts = hamiltorch.sample(log_prob_func=logPosteriorSersic_logL, 
+                                        params_init=paramis_init,
                                         num_samples=N_nuts,
                                         step_size=step_size, 
                                         num_steps_per_sample=L,
                                         sampler=hamiltorch.Sampler.HMC_NUTS,
                                         burn=burn,
-                                        desired_accept_rate=0.8)
+                                        desired_accept_rate=0.8,
+                                        debug=False)
         
         # logPost=[]
         # for j in range(0,len(params_nuts)):
@@ -161,13 +262,28 @@ class hamiltonian_model:
         
         params_nuts = torch.cat(params_nuts[1:]).reshape(len(params_nuts[1:]),-1)
 
-        params_nuts[:, 0],_,_ = transform(params_nuts[:, 0],0,1)
-        params_nuts[:, 1],_,_ = transform(params_nuts[:, 1],0.001,200)
-        params_nuts[:, 2],_,_ = transform(params_nuts[:, 2],0.001,10)
-        params_nuts[:, 3],_,_ = transform(params_nuts[:, 3],15,self.nx-15)
-        params_nuts[:, 4],_,_ = transform(params_nuts[:, 4],15,self.ny-15)
-        params_nuts[:, 5],_,_ = transform(params_nuts[:, 5],0,0.999)
-        params_nuts[:, 6],_,_ = transform(params_nuts[:, 6],0,180)
+        params_nuts[:, 0], _, _ = transform(params_nuts[:, 0], self.left[0], self.right[0])
+        params_nuts[:, 1], _, _ = transform(params_nuts[:, 1], self.left[1], self.right[1])
+        params_nuts[:, 2], _, _ = transform(params_nuts[:, 2], self.left[2], self.right[2])
+        params_nuts[:, 3], _, _ = transform(params_nuts[:, 3], self.left[3], self.right[3])
+        params_nuts[:, 4], _, _ = transform(params_nuts[:, 4], self.left[4], self.right[4])
+        params_nuts[:, 5], _, _ = transform(params_nuts[:, 5], self.left[5], self.right[5])
+        params_nuts[:, 6], _, _ = transform(params_nuts[:, 6], self.left[6], self.right[6])
+
+        params_nuts[:, 0] = 10.0**params_nuts[:, 0]
+        params_nuts[:, 1] = 10.0**params_nuts[:, 1]
+
+        params_nuts[:, 3] = self.nx * params_nuts[:, 3]
+        params_nuts[:, 4] = self.ny * params_nuts[:, 4]
+
+
+        print(f'A    = {torch.median(params_nuts[:, 0]).item()} - {torch.std(params_nuts[:, 0]).item()}')
+        print(f'Re   = {torch.median(params_nuts[:, 1]).item()} - {torch.std(params_nuts[:, 1]).item()}')
+        print(f'n    = {torch.median(params_nuts[:, 2]).item()} - {torch.std(params_nuts[:, 2]).item()}')
+        print(f'x0   = {torch.median(params_nuts[:, 3]).item()} - {torch.std(params_nuts[:, 3]).item()}')
+        print(f'y0   = {torch.median(params_nuts[:, 4]).item()} - {torch.std(params_nuts[:, 4]).item()}')
+        print(f'e    = {torch.median(params_nuts[:, 5]).item()} - {torch.std(params_nuts[:, 5]).item()}')
+        print(f'theta= {torch.median(params_nuts[:, 6]).item()} - {torch.std(params_nuts[:, 6]).item()}')
         
         #max_logpost=np.argmax(logPost)
         #max_logpost_params= params_nuts[max_logpost]
