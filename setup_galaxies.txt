@@ -68,13 +68,13 @@
 # COMPONENTS TO FIT		   
 #===============================================================================================
 #
-	./Simulacion_Jairo/initial_values.dat		  #|User input file (Indicate on file the order of the columns)
-	./Simulacion_Jairo/sersic_sim  			  #|Path of the directory where the galaxies to be analyzed are located
+	./Simulacion_Jairo/initial_values.dat		  #|User input file, only for simulations, indicate the initial params used to create each galaxy
+	./SDSS_catalog/gal_imgs  			  #|Path of the directory where the galaxies to be analyzed are located
 	./making_masks/mask_fits			  #|Path of the directory where the mask are located
 	./iraf_psf/FWHM_list/test.txt			  #|Path to the file with the information of the PSF of each field is located
 	./SDSS_catalog/fits_data/catalogo_SDSS_run.csv	  #|Path to the file with the information of the galaxies 
-	yes			  			  #|Indicates if simulations are being analyzed, if so, proceed to ignore the mask
-	yes			  			  #|Use of common parameters for all galaxies. That is, PSF value, sky noise, etc.
-	./initial_values.dat			          #|If the above parameter is no, indicate the directory and name of the file that contains the parameters for each galaxy
+	no			  			  #|Indicates if simulations are being analyzed, if so, proceed to ignore the mask
+	no			  			  #|Use of common parameters for all galaxies. That is, PSF value, sky noise, etc.
+	./SDSS_catalog/photo_field_data		          #|If the above parameter is no, indicate the directory and name of the file that contains the parameters for each galaxy
 	./AND_images			          	  #|Directory in which the images of the galaxies will be stored together with their model and residuals, as well as the triangular plots
 #
