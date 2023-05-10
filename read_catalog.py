@@ -12,6 +12,7 @@ from astropy.io import fits
 
 csv_file_path= "./SDSS_catalog/fits_data/catalogo_SDSS_run.csv"
 csv_file = pd.read_csv(csv_file_path,header=1)
+data_radius =fits.getdata('./SDSS_catalog/A2142_memberLiu_sigma.fits')
 
 objID=csv_file["objID" ]
 run=(csv_file["run" ])
@@ -41,7 +42,13 @@ for i in range(0, len(objID)):
     colc_i_new= int(np.round(colc_i[i]))
     
     data=fits.getdata(fits_file)
+    index = np.where((data_radius["SDSS"]==objID[i]))[0][0]
     
-    new_data = data[rowc_i_new-100:rowc_i_new+101, colc_i_new-100:colc_i_new+101]
+    radius = np.round(10*data_radius["petroR90_r"][index])
+    if rowc_i_new-int(radius)<0 or colc_i_new-int(radius)<0:
+        radius = np.round(3*data_radius["petroR90_r"][index])
+        new_data = data[rowc_i_new-int(radius):rowc_i_new+int(radius), colc_i_new-int(radius):colc_i_new+int(radius)]
+    else:
+        new_data = data[rowc_i_new-int(radius):rowc_i_new+int(radius), colc_i_new-int(radius):colc_i_new+int(radius)]
     hdu = fits.PrimaryHDU(new_data)
     hdu.writeto(galaxies_path+str(objID[i])+".fits",overwrite=True)

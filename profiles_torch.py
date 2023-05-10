@@ -52,13 +52,6 @@ def sersic(n,theta,r_eff,ellip,x,x_0,y,y_0,amplitude):
         x_min = -(x - x_0) * sin_theta + (y - y_0) * cos_theta
         x_maj = -(x - x_0) * cos_theta - (y - y_0) * sin_theta
 
-        # if (torch.any(torch.isnan(x_min))):
-        #     print('x_min is nan')
-        #     breakpoint()
-        # if (torch.any(torch.isnan(x_maj))):
-        #     print('x_min is nan')
-        #     breakpoint()
-
         z = torch.sqrt(((x_min)**2) + ((x_maj/(1-ellip))**2))
         invn = 1/n
         return(amplitude * 10**(-bn*(((z/r_eff)**(invn))-1)))
@@ -151,12 +144,12 @@ class Sersic2D:
             y_left= int(torch.round(self.y_0)-half_size)
             y_right= int(torch.round(self.y_0)+half_size)
            
-            map_ser[y_left:y_right,x_left:x_right] = rebinned_submodel#.detach()
+            map_ser[y_left:y_right,x_left:x_right] = rebinned_submodel
             
             return(map_ser)
         except:
             return(map_ser)
-        # return(map_ser)
+        return(map_ser)
 
 class Exponential2D:
     r"""

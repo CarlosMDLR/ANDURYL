@@ -8,8 +8,8 @@ import numpy as np
 
 def data_reader(txtname):
     galaxy= np.loadtxt(txtname, dtype="str",skiprows=1,ndmin=1,usecols=0)
-    Ie,Re,n, ba_b, PA_bulge, B_T, X_center, Y_center, chi_2 = np.loadtxt(txtname, unpack=True,skiprows=1,ndmin=2,usecols=(1,2,3,4,5,6,7,8,9))
-    return(galaxy,Ie,Re,n, ba_b, PA_bulge, B_T, X_center, Y_center, chi_2)
+    Ie,Re,n, ba_b, PA_bulge, B_T, Mag_tot = np.loadtxt(txtname, unpack=True,skiprows=1,ndmin=2,usecols=(1,2,3,4,5,6,7))
+    return(galaxy,Ie,Re,n, ba_b, PA_bulge, B_T,Mag_tot)
 
 a= np.loadtxt("setup.txt", dtype = str)
 par_names = 'algo','accep_rat','like_func','max_mark', 'max_iter', 'init_guess', 'tel_scale',\
@@ -17,7 +17,8 @@ par_names = 'algo','accep_rat','like_func','max_mark', 'max_iter', 'init_guess',
         'inc_pois_nois','gain','readout_noise','in_exp_time','exp_time','exp_map','bcgr_nois',\
             'sky_sigm', 'weight_map','log_img','gauss_amp','mean_x', 'mean_y', 'theta_rot','stdv_x',\
                 'stdv_y','gauss_amp_2','mean_x_2', 'mean_y_2', 'theta_rot_2', 'stdv_x_2',\
-                    'stdv_y_2','moff_amp','moff_x', 'moff_y','width_moff','power_moff','user_in_file','syn_centr','sky_back'
+                    'stdv_y_2','moff_amp','moff_x', 'moff_y','width_moff','power_moff','user_in_file',\
+                        'gal_dir', 'mask_dir','params_dir','gal_csv','use_simu', 'comm_params','file_params','save_final_img'
 d = dict(zip(par_names,a))
 
 #==============================================================================
@@ -81,7 +82,11 @@ power_moff=float(d['power_moff'])
 # COMPONENTS TO FIT		   
 #==============================================================================
 user_in_file=str(d['user_in_file'])
-syn_centr=str(d['syn_centr'])
-sky_back=str(d['sky_back'])
-
-
+gal_dir=str(d['gal_dir'])
+mask_dir=str(d['mask_dir'])
+params_dir=str(d['params_dir'])
+gal_csv =str(d['gal_csv'])
+use_simu=str(d['use_simu'])
+comm_params=str(d['comm_params'])
+file_params=str(d['file_params'])
+dir_img_final=str(d['save_final_img'])
