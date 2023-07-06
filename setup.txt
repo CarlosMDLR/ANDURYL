@@ -1,0 +1,104 @@
+#		     _______________________________________  
+#		    |A N D U R Y L   F I T T I N G   F I L E| 
+#                   '''''''''''''''''''''''''''''''''''''''''
+#                                   *,,,,                                       
+#                                  ***/(#&,.,                                    
+#                                   ****,,,*                                     
+#                                    ***,,                                       
+#                                     **,,                                       
+#                                    .***,                                       
+#                             ,@@@@@@&****@@@@@*                                 
+#                        %@@@@@&@@#%@&#&#*@@@@@%@@@@(                            
+#                     @@@@(/@@@@@@@@@&#&#*%%@@##@@&@@@@@                         
+#                  (@@@@@@@@@%@@@@@@@%//(/@@@@@@@#@@@@@@@@,                      
+#                 @@@@@@@@@@@@@@@    &&&&&   ,@@@@@@@@@@@@@@.                    
+#               @@@@@@@@@@@@@        &&&&&       &@@@@@@@@@@@@                   
+#              @@@@@@@@@@@@          &&&&&         (@@@@@@@@@@@                  
+#             ,@@@@@@@@@@@           &&&&&           @@@@@@@@@@@                 
+#             @@@@@@@@@@@            @@@&&           /&@@@@@@@@@                 
+#             @@@@@@@@@@.            @@@@&        &&&*&&%&%@@@@@@                
+#             @@@@@@@@@@#    .,,.    @@@@&        &   @@@##%@@@@@                
+#             &@@@@@@@&#((((/////,.  ,//%%(*/((#     @@@###%@@@@                 
+#              @@@@@@%#(##    ***,*//(/@@%#,,**/***/(***/(%@@@@@                 
+#               @@@@&%##@@@,*(     #((#*,,*/****//*///%@@@@@@@@                  
+#                @@@&&&%&@@@%&      (//*,,,/     @@@@@@@@@@@@@                   
+#                 @@@@#&&&&@@@@@@@% (//*,,,/(@@@@@@@@@@@@@@@,                    
+#                   @@@@@@@@@@@@@@@@(//**,,%@@@@@@@@@@@@@@/                      
+#                      @@@@@@@@@@@@@(//**,,%@@@@@@@@@@@@                         
+#                         #@@@@@@@@@(//**,,%@@@@@@@@#                            
+#                               %@@@(/***,,%@@@.                                 
+#                                   (/*,*,,/                                     
+#                                   //*,*,,/                                     
+#                                   (/*,*,,/                                     
+#                                   (/*,*,,/                                     
+#                                   (//**,,/                                     
+#                                   (//**,,/                                     
+#                                    //**,,(                                     
+#                                     ,*/,,(                                     
+#                                      */,,(                                     
+#                                      */,,(                                     
+#                                      */,,(                                     
+#                                       *,,(                                     
+#                                        ,,(                                     
+#                                        ,,(                                     
+#                                         ,(                                     
+#                                         ,(                                     
+#                                         .#                                     
+#                                          #  
+#
+#===============================================================================================
+# IMAGE/INSTRUMENT INFORMATION
+#===============================================================================================
+#
+	Moffat			  #|PSF; Gaussian, Double_Gaussian, Moffat, Input_image,SDSS,SDSS_power_law (only Moffat is currently working, the rest is projected as future work)
+	51			  #|x size in pixels of the PSF
+	51		 	  #|y size in pixels of the PSF 
+	2.78			  #|Seeing FWHM (in pixel)
+	178.26			  #|Sky values 
+	4.86			  #|Gain(e-/ADU)
+	5.76	  		  #|Readout noise
+	4			  #|Sky sigma value for each pixel
+#
+#===========================================
+# GAUSSIAN PARAMETERS
+#===========================================
+	100			  #|Amplitude (peak value) of the Gaussian.
+ 	10			  #|Mean of the Gaussian in x.
+	10			  #|Mean of the Gaussian in y.
+	0			  #|The rotation angle in radians. The rotation angle increases counterclockwise (optional). 
+	3			  #|Standard deviation of the Gaussian in x before rotating by theta.
+	3			  #|Standard deviation of the Gaussian in y before rotating by theta.
+#===========================================
+# DOUBLE GAUSSIAN PARAMETERS 
+#===========================================
+	110			  #|Amplitude (peak value) of the Gaussian.
+ 	30			  #|Mean of the Gaussian in x.
+	30			  #|Mean of the Gaussian in y.
+	0 			  #|The rotation angle in radians. The rotation angle increases counterclockwise (optional). 
+	4.14			  #|Standard deviation of the Gaussian in x before rotating by theta.
+	4.14			  #|Standard deviation of the Gaussian in y before rotating by theta.
+#===========================================
+# MOFFAT PARAMETERS
+#===========================================
+	0.1			  #|Amplitude of the model.
+	10			  #|x position of the maximum of the Moffat model.
+ 	10			  #|y position of the maximum of the Moffat model.
+	2.78			  #|Core width of the Moffat model.
+	4.6			  #|Power index of the Moffat model.
+#
+#===============================================================================================
+# COMPONENTS TO FIT		   
+#===============================================================================================
+#
+	Bulge					  	  #|Indicate which components you want to adjust, right now Bulge and Bulge-disc are the only ones implemented	
+	./Simulacion_Jairo/initial_values.dat		  #|User input file, only for simulations, indicate the initial params used to create each galaxy
+	./gal_imgs  			  		  #|Path of the directory where the galaxies to be analyzed are located
+	./mask_fits			                  #|Path of the directory where the mask are located
+	./FWHM_list/psf_params.txt			  #|Path to the file with the information of the PSF of each field is located
+	./SDSS_catalog/fits_data/catalogo_SDSS_run.csv	  #|Path to the file with the information of the galaxies 
+	no			  			  #|Indicates if simulations are being analyzed, if so, proceed to ignore the mask
+	no			  			  #|Use of common parameters for all galaxies. That is, PSF value, sky noise, etc.
+	./SDSS_catalog/photo_field_data		          #|If the above parameter is no, indicate the directory and name of the file that contains the parameters for each galaxy
+	./AND_images			          	  #|Directory in which the images of the galaxies will be stored together with their model and residuals, as well as the triangular plots
+	yes							
+#
