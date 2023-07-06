@@ -1,6 +1,6 @@
 
-![logoanduryl](https://github.com/CarlosMDLR/ANDURYL/assets/105994653/28960449-ddef-4f87-be39-9012b5b20079)
 
+![logoanduryl](https://github.com/CarlosMDLR/ANDURYL/assets/105994653/2d21068f-395e-4d4b-9c76-bed0bcc80624)
 
 # ANDURYL
 
