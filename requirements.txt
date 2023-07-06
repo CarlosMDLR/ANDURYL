@@ -1,0 +1,11 @@
+# Lista de librerias y paquetes a instalar
+# Para ejecutarlo escriba en el terminal: python -m pip install -r requirements.txt
+corner
+numpy
+pandas
+cblind
+matplotlib
+astropy
+joblib
+torch
+scipy
