@@ -25,3 +25,9 @@ the code will be made even more generic to adapt its use:
 - In the FWHM list directory there is a file with the information of the Moffat Point Spread Function for each galaxy.
 - AND_images is the directory in which the images of the residuals and triangular plots will be saved, if indicated in the configuration file.
 - The configuration file is ```setup.txt```, in which different parameters and code directories are indicated.
+
+Once all the parameters and files have been placed in their proper places the code can be used by simply running the main program ```ANDURYL_main.py```:
+
+```
+python ANDURYL_main.py
+```
