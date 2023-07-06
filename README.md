@@ -13,7 +13,7 @@ git clone https://github.com/CarlosMDLR/ANDURYL.git
 cd ANDURYL
 python -m pip install -r requirements.txt
 ```
-:warning: If you have ```arxiv``` installed on your device, be aware that this may cause incompatibilities with the function of the main program that runs triangular diagrams, if you experience failures in this regard, uninstall arxiv :warning:
+:warning: If you have ```arxiv``` installed on your device, be aware that this may cause incompatibilities with the function of the main program that runs triangular diagrams, if you experience failures in this regard, uninstall arxiv or set "no" to the generation of plots in the configuration file :warning:
 ## Utilization
 
 There is currently a test environment available in which to use the code to fit an example galaxy.
