@@ -10,6 +10,7 @@ the requirements.txt file, which includes all the Python packages necessary for 
 
 ```
 git clone https://github.com/CarlosMDLR/ANDURYL.git
+cd ANDURYL
 python -m pip install -r requirements.txt
 ```
 
