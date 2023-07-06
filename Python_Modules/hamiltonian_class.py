@@ -7,7 +7,7 @@ Created on Wed Nov 23 20:18:01 2022
 # =============================================================================
 # Import modules
 # =============================================================================
-from priors import priors
+
 from astropy.io import fits
 from psf_generation import psf
 from profile_select import profiles
@@ -25,21 +25,6 @@ import scipy.stats as stats
 torch.set_default_dtype(torch.float64)
 use_simu = str(paris.use_simu).lower() in ['yes']
 comm_params = str(paris.comm_params).lower() in ['yes']
-
-
-def transform(param, a, b):
-    """
-    Return the transformed parameters using the logit transform to map 
-    from (-inf,inf) to (a,b)
-    It also returns the log determinant of the Jacobian of the transformation.
-    """
-    logit_1 = 1.0 / (1.0+ torch.exp(-param))
-    transformed = a + (b-a) * logit_1
-    logdet = torch.log(torch.tensor((b-a))) + torch.log(logit_1)\
-        + torch.log((1.0 - logit_1))
-    p=priors(A=a,B=b,N=1)
-    prior = torch.log(torch.tensor(p.Uprior()))
-    return transformed, logdet,prior
 
 def invtransform(param,a,b):
     """
