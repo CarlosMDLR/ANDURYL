@@ -1,6 +1,5 @@
 
 ![logoanduryl](https://github.com/CarlosMDLR/ANDURYL/assets/105994653/0e4215d1-d896-4bd7-9806-0f3f59e4bcf2)
-![photo1688666452](https://github.com/CarlosMDLR/ANDURYL/assets/105994653/aa1cf71a-af91-42d8-a460-0a8493145362)
 
 ANDURYL (A bayesiaN Decomposition code for Use in photometRY Labors) is a code created to perform photometric decompositions of galaxies using Bayesian statistics.
 This code has been made within the framework of a Master's Thesis, and is in a beta state, fully functional, but can be adapted beyond the needs of the Master's project.
