@@ -24,17 +24,18 @@ def data_reader_bulgedisc(txtname):
     usecols=(1,2,3,4,5,6,7,8,9,10,11,12))
     return(galaxy,Ie,Re,n, ba_b, PA_bulge, B_T,I0,h,q_dis,PA_disc,D_T, Mag_tot)
 
-a= np.loadtxt("setup.txt", dtype = str)
+a= np.loadtxt("./setup.txt", dtype = str)
 
 par_names = 'psf_type','xsize','ysize','seing_pxl','sky_val',\
         'gain','readout_noise',\
             'sky_sigm','gauss_amp','mean_x', 'mean_y', 'theta_rot','stdv_x',\
                 'stdv_y','gauss_amp_2','mean_x_2', 'mean_y_2', 'theta_rot_2',\
                     'stdv_x_2','stdv_y_2','moff_amp','moff_x', 'moff_y',\
-                        'width_moff','power_moff','to_fit','user_in_file',\
+                        'width_moff','power_moff','n_cores',\
+                        'low_lim','upp_lim','to_fit','user_in_file',\
                         'gal_dir', 'mask_dir','params_dir','gal_csv',\
-                            'use_simu', 'comm_params','file_params',\
-                                'dir_img_final','make_plots'
+                        'use_simu', 'comm_params','file_params',\
+                        'dir_img_final','make_plots'
 d = dict(zip(par_names,a))
 
 
@@ -76,6 +77,13 @@ moff_x=float(d['moff_x'])
 moff_y=float(d['moff_y'])
 width_moff=float(d['width_moff'])
 power_moff=float(d['power_moff'])
+
+#===============================================================================================
+# COMPUTING PARAMETERS		   
+#===============================================================================================
+n_cores = int(d['n_cores'])
+low_lim = int(d['low_lim'])
+upp_lim = int(d['upp_lim'])
 #==============================================================================
 # COMPONENTS TO FIT		   
 #==============================================================================

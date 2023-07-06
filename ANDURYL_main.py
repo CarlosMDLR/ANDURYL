@@ -203,7 +203,7 @@ def compare_plots(mn,hamiltonian_class,samples,data,labels,titles,\
     if not log:
         data = abs(data)/gain
         b = b/gain            
-        residual = b.detach().numpy()-abs(data)
+        residual = abs(data)-b.detach().numpy()
     elif log:
         # We transform the result from counts to superficial bright
 
@@ -213,7 +213,7 @@ def compare_plots(mn,hamiltonian_class,samples,data,labels,titles,\
         elif use_simu:
             data = -2.5*np.log10(abs(data)/gain)+20.48847593
             b=-2.5*torch.log10(b/gain)+20.48847593
-        residual = b-data
+        residual = abs(data)-b.detach().numpy()
 
     # We generate the figures
     fig = plt.figure(figsize=(15,25))
@@ -420,9 +420,13 @@ def iter_gal_parallel(gal_files,frame_names,psf_values,objID,run,camcol,field,\
         if filte=="g":ind_filt=4
         
         index_3 = np.where((frame_names==frame_name))[0][0]
-        width_moff=psf_values[index_3][0]
-        power_moff=psf_values[index_3][1]
         
+        try:
+            width_moff=psf_values[index_3][0]
+            power_moff=psf_values[index_3][1]
+        except:
+            width_moff=psf_values[index_3]
+            power_moff=psf_values[index_3]            
         # SDSS PhotField data is loaded
         phot_field_data = fits.getdata(pars.file_params+"/"+"photoField"+"-%s"\
                                        %run_new+"-%s"%(str(camcol[index_2]))\
@@ -513,6 +517,7 @@ if use_simu:
         pars.data_reader(pars.user_in_file)
 
 # The files are loaded from the directory chosen to analyze
+
 gal_files = [ f for f in os.listdir(pars.gal_dir) if f.endswith(".fits")]
 gal_files.sort()
 
@@ -564,8 +569,8 @@ if not comm_params:
 # =============================================================================
 
 # A parallelization process is carried out
-n_jobs=1
-gal_lim = np.arange(0,4,1)
+n_jobs=int(pars.n_cores)
+gal_lim = np.arange(int(pars.low_lim),int(pars.upp_lim),1)
 
 result = Parallel(n_jobs=n_jobs,verbose =10)(delayed(iter_gal_parallel)
                         (gal_files,frame_names,psf_values,objID,run,camcol,\
